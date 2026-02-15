@@ -1,39 +1,58 @@
 const Order = require('../models/order.model');
 const Product = require('../models/product.model');
+const User = require('../models/user.model');
+const Shop = require('../models/shop.model');
 
 exports.createOrder = async (req, res) => {
     try {
-        const { shopId, items } = req.body;
-        let totalCentimes = 0;
+        const { shopId, items, paymentMethod } = req.body;
+        const buyerId = req.auth.userId; // Récupéré du token JWT
 
+        // 1. Récupérer les infos pour la dénormalisation (buyerName et shopName)
+        const buyer = await User.findById(buyerId);
+        const shop = await Shop.findById(shopId);
+        
+        if (!shop) return res.status(404).json({ message: "Boutique non trouvée" });
+
+        let totalCentimes = 0;
+        const orderItems = [];
+
+        // 2. Vérification des produits et préparation des sous-documents
         for (const item of items) {
             const product = await Product.findById(item.productId);
             
-            if (!product || product.stock < item.qty) {
+            if (!product || product.stock < item.quantity) {
                 return res.status(400).json({ 
                     message: `Stock insuffisant pour : ${product ? product.name : 'Inconnu'}` 
                 });
             }
 
-            // 1. On fige les infos pour l'historique
-            item.priceAtPurchase = product.price;
-            item.name = product.name;
+            // On prépare l'item selon orderItemSchema
+            orderItems.push({
+                productId: product._id,
+                name: product.name,
+                price: product.price, // Prix figé au moment de l'achat
+                quantity: item.quantity,
+                image: product.image
+            });
 
-            // 2. Calcul sécurisé (on travaille en centimes pour éviter les bugs JS)
-            totalCentimes += (product.price * 100) * item.qty;
+            totalCentimes += (product.price * 100) * item.quantity;
         }
 
-        // 3. Mise à jour des stocks
+        // 3. Mise à jour des stocks en parallèle
         await Promise.all(items.map(item => 
-            Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.qty } })
+            Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } })
         ));
 
-        // 4. Enregistrement avec total converti en Euros (2 décimales)
+        // 4. Création de la commande conforme au nouveau schéma
         const order = new Order({
-            shopId,
-            items,
-            totalPrice: totalCentimes / 100, 
-            buyerId: req.auth.userId,
+            buyerId: buyerId,
+            buyerName: buyer.name,
+            shopId: shop._id,
+            shopName: shop.name,
+            items: orderItems, // Utilisation du orderItemSchema
+            totalPrice: totalCentimes / 100,
+            paymentMethod: paymentMethod || 'cash',
             status: 'pending'
         });
 
@@ -48,45 +67,63 @@ exports.createOrder = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const { status } = req.body; // ex: { "status": "completed" }
+        const { status } = req.body;
 
-        // 1. Chercher la commande
         const order = await Order.findById(orderId);
         if (!order) return res.status(404).json({ message: "Commande non trouvée" });
 
-        // 2. Vérification de sécurité : Est-ce bien le vendeur de cette commande ?
-        // On compare l'ID du shop de la commande avec l'ID de l'utilisateur connecté (req.auth)
-        if (order.shopId.toString() !== req.auth.userId && req.auth.role !== 'admin') {
-            return res.status(403).json({ message: "Action non autorisée pour ce vendeur" });
+        // Vérification : Seul le shop propriétaire ou l'admin peut modifier
+        // Note : order.shopId est un ID de la collection 'Shops', pas l'ID User. 
+        // Il faut vérifier si l'utilisateur connecté possède cette boutique.
+        const shop = await Shop.findById(order.shopId);
+        if (shop.ownerId.toString() !== req.auth.userId && req.auth.role !== 'admin') {
+            return res.status(403).json({ message: "Action non autorisée" });
         }
 
-        // 3. Mise à jour du statut
         order.status = status;
         await order.save();
 
-        res.json({ message: `Statut mis à jour : ${status}`, order });
+        res.json({ message: "Statut mis à jour", order });
     } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la mise à jour", error: error.message });
+        res.status(500).json({ message: "Erreur", error: error.message });
+    }
+};
+
+exports.createOrderWithUserId = async (req, res) => {
+    try {
+        const { paymentMethod, items } = req.body;
+        const totalCentimes = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+        const order = new Order({
+            buyerId: req.auth.userId,
+            shopName: items[0].shopName, // Dénormalisation pour Angular
+            items: items, // Utilisation du orderItemSchema
+            totalPrice: totalCentimes / 100,
+            paymentMethod: paymentMethod || 'cash',
+            status: 'pending'
+        });
+
+        await order.save();
+        res.status(201).json(order);
+
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
     }
 };
 
 exports.getUserOrders = async (req, res) => {
     try {
         let filter = {};
-
-        // Si c'est un acheteur, on filtre par buyerId
-        if (req.auth.role === 'buyer') {
-            filter = { buyerId: req.auth.userId };
-        } 
-        // Si c'est une boutique, on filtre par shopId
+        if (req.auth.role === 'buyer') filter = { buyerId: req.auth.userId };
         else if (req.auth.role === 'shop') {
-            filter = { shopId: req.auth.userId };
+            // Pour un shop, on cherche d'abord sa boutique
+            const shop = await Shop.findOne({ ownerId: req.auth.userId });
+            filter = { shopId: shop._id };
         }
 
-        // .populate() permet de récupérer les détails des produits au lieu de simples IDs
-        const orders = await Order.find(filter).sort({ createdAt: -1 }); // Plus récentes en premier
+        const orders = await Order.find(filter).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
-        res.status(500).json({ message: "Erreur lors de la récupération des commandes" });
+        res.status(500).json({ message: "Erreur récupération commandes" });
     }
 };

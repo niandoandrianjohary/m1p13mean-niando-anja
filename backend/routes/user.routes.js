@@ -1,11 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const userCtrl = require('../controllers/user.controller');
+const auth = require('../middleware/auth');
+const role = require('../middleware/role');
 
-// Route pour l'inscription (Sign-up)
-router.post('/signup', userCtrl.createUser); 
+// --- ROUTES PUBLIQUES ---
 
-// Route pour la connexion (Login) -> Celle que tu vas tester
-router.post('/login', userCtrl.login); 
+// Inscription générique (utilisée par ton binôme pour les tests)
+router.post('/signup', userCtrl.createUser);
+
+// Inscription spécifique pour les Acheteurs (avec ton nouveau schéma à plat)
+router.post('/signup/buyer', userCtrl.signupBuyer);
+
+// Connexion (Login) - Renvoie le Token JWT
+router.post('/login', userCtrl.login);
+
+
+// --- ROUTES PROTÉGÉES ---
+
+// Seul l'ADMIN peut voir la liste de tous les utilisateurs
+router.get('/', auth, role(['admin']), userCtrl.getAllUsers);
 
 module.exports = router;
