@@ -19,7 +19,7 @@ export const routes: Routes = [
 
   // Acheteur
   {
-    path: 'buyer',
+    path: 'buy',
     loadComponent: () => import('./components/dashboard/buyer-dashboard.component').then(m => m.BuyerDashboardComponent)
   },
 

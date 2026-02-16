@@ -7,6 +7,8 @@ const role = require('../middleware/role');
 // 1. LIRE toutes les boutiques (Public : Acheteurs, Boutiques et Admin)
 router.get('/', shopCtrl.getAllShops);
 
+router.get('/owner', auth, shopCtrl.getShopByOwnerId);
+
 // 2. LIRE une boutique spécifique par ID (Public)
 router.get('/:id', shopCtrl.getShopById);
 
@@ -22,5 +24,8 @@ router.patch('/:id/verify', auth, role(['admin']), shopCtrl.verifyShop);
 
 // 6. SUPPRIMER une boutique (Sécurisé : Admin uniquement)
 router.delete('/:id', auth, role(['admin']), shopCtrl.deleteShop);
+
+// 7. CRÉER un utilisateur pour une boutique (Sécurisé : Shop)
+router.post('/shop-user', auth, role(['shop']), shopCtrl.createShopUser);
 
 module.exports = router;

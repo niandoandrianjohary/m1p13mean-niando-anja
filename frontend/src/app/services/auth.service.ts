@@ -37,6 +37,29 @@ export class AuthService {
   isLoggedIn(): boolean {
     return !!this.currentUserSig();
   }
+
+  // src/app/services/auth.service.ts
+  // src/app/services/auth.service.ts
+  register(userData: any): Observable<any> {
+    const payload = {
+      email: userData.email,
+      password: userData.password,
+      name: userData.fullName,
+      role: userData.role,
+      phone: userData.phone,
+      address: userData.address,
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/users/signup`, payload).pipe(
+      tap(res => {
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('userId', res.userId);
+          this.currentUserSig.set(res.user);
+        }
+      })
+    );
+  }
 }
 
 // import { Injectable, signal } from '@angular/core';

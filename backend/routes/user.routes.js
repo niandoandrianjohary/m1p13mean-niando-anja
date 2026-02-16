@@ -7,7 +7,7 @@ const role = require('../middleware/role');
 // --- ROUTES PUBLIQUES ---
 
 // Inscription générique (utilisée par ton binôme pour les tests)
-router.post('/signup', userCtrl.createUser);
+router.post('/signup/shop', userCtrl.signupShop);
 
 // Inscription spécifique pour les Acheteurs (avec ton nouveau schéma à plat)
 router.post('/signup/buyer', userCtrl.signupBuyer);
@@ -15,6 +15,8 @@ router.post('/signup/buyer', userCtrl.signupBuyer);
 // Connexion (Login) - Renvoie le Token JWT
 router.post('/login', userCtrl.login);
 
+// Inscription générique (utilisée par ton binôme pour les tests)
+router.post('/signup', userCtrl.signup);
 
 // --- ROUTES PROTÉGÉES ---
 

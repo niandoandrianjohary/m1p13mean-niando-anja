@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ShopService } from '../../../services/shop.service';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -561,38 +562,51 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
+    private shopService: ShopService,
     private router: Router
   ) { }
 
   onSubmit() {
     if (!this.email || !this.password) return;
-
     this.loading = true;
 
-    // Appel réel à ton API Express via le service
     this.authService.login(this.email, this.password).subscribe({
       next: (res) => {
-        // L'API a répondu avec succès (Status 200)
         const role = this.authService.getUserRole();
         const userName = this.authService.currentUserSig()?.name || 'Utilisateur';
 
         let welcomeMessage = `Bienvenue ${userName} !`;
-        let redirectPath = '/';
 
-        // On garde la logique de redirection de ton binôme
-        switch (role) {
-          case 'admin':
-            welcomeMessage += '\nAccès au tableau de bord administrateur.';
-            redirectPath = '/admin';
-            break;
-          case 'shop':
-            welcomeMessage += '\nAccès à votre espace boutique.';
-            redirectPath = '/shop';
-            break;
-          case 'buyer':
-            welcomeMessage += '\nAccès à votre espace client privilège.';
-            redirectPath = '/buyer';
-            break;
+        // CAS PARTICULIER : LE SHOP
+        if (role === 'shop') {
+          this.shopService.getShopByOwnerId().subscribe({
+            next: (shop) => {
+              if (shop.status === 'active') {
+                alert(welcomeMessage);
+                this.router.navigate(['/shop']);
+              } else {
+                alert("Votre boutique est en cours de validation par l'administrateur.");
+                this.router.navigate(['/login']); // On redirige vers login ou home si pas actif
+              }
+              this.loading = false;
+            },
+            error: (err) => {
+              console.error("Erreur shop:", err);
+              this.loading = false;
+              alert("Erreur lors de la récupération de votre boutique.");
+            }
+          });
+          return; // IMPORTANT : On sort de la fonction ici pour ne pas exécuter le code ci-dessous
+        }
+
+        // CAS GÉNÉRAUX : ADMIN / BUYER
+        let redirectPath = '/';
+        if (role === 'admin') {
+          welcomeMessage += '\nAccès au tableau de bord administrateur.';
+          redirectPath = '/admin';
+        } else if (role === 'buyer') {
+          welcomeMessage += '\nAccès à votre espace client privilège.';
+          redirectPath = '/buy';
         }
 
         alert(welcomeMessage);
@@ -600,7 +614,6 @@ export class LoginComponent {
         this.loading = false;
       },
       error: (err) => {
-        // L'API a renvoyé une erreur (ex: 401 Unauthorized)
         console.error('Erreur login:', err);
         alert('Identifiants incorrects ou erreur serveur.');
         this.loading = false;

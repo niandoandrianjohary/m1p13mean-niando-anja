@@ -37,6 +37,23 @@ exports.getShopById = async (req, res) => {
     }
 };
 
+// 5. Récupérer une boutique par son ID de gérant
+exports.getShopByOwnerId = async (req, res) => {
+    console.log("Contenu de req.auth :", req.auth);
+    try {
+        // L'ID vient du Token, c'est sécurisé et automatique !
+        const shop = await Shop.findOne({ ownerId: req.auth.userId });
+
+        if (!shop) {
+            return res.status(404).json({ message: "Vous n'avez pas encore de boutique." });
+        }
+
+        res.status(200).json(shop);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};
+
 // 4. METTRE À JOUR une boutique (Sécurisé)
 exports.updateShop = async (req, res) => {
     try {
@@ -50,7 +67,7 @@ exports.updateShop = async (req, res) => {
 
         // Empêcher un gérant de boutique de s'auto-valider (passer en 'active' tout seul)
         if (req.auth.role !== 'admin' && req.body.status) {
-            delete req.body.status; 
+            delete req.body.status;
         }
 
         const updatedShop = await Shop.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -84,8 +101,8 @@ exports.verifyShop = async (req, res) => {
 
         // On cherche et met à jour uniquement le statut
         const shop = await Shop.findByIdAndUpdate(
-            id, 
-            { status: 'active' }, 
+            id,
+            { status: 'active' },
             { new: true } // Pour renvoyer la boutique mise à jour
         );
 
@@ -94,5 +111,20 @@ exports.verifyShop = async (req, res) => {
         res.json({ message: "Boutique validée avec succès !", shop });
     } catch (error) {
         res.status(500).json({ message: "Erreur lors de la validation", error: error.message });
+    }
+};
+
+// Créer une boutique associée à l'utilisateur connecté
+exports.createShopUser = async (req, res) => {
+    try {
+        const newShop = new Shop({
+            ...req.body,
+            ownerId: req.auth.userId,
+            status: 'pending'
+        });
+        const savedShop = await newShop.save();
+        res.status(201).json(savedShop);
+    } catch (error) {
+        res.status(400).json({ message: "Erreur création boutique", error: error.message });
     }
 };

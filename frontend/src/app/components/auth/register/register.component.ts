@@ -2,6 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
+import { ShopService } from '../../../services/shop.service';
+import { switchMap, of, tap } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -412,7 +415,7 @@ import { Router, RouterLink } from '@angular/router';
               </div>
 
               <div class="confirmation-actions">
-                <button class="btn-luxe btn-primary" routerLink="/login">
+                <button class="btn-luxe btn-primary" (click)="connect()">
                   <i class="fas fa-sign-in-alt"></i> SE CONNECTER
                 </button>
                 <button class="btn-luxe btn-outline" routerLink="/">
@@ -949,6 +952,18 @@ import { Router, RouterLink } from '@angular/router';
       transition: all 0.3s ease;
     }
 
+    .form-input-luxe[type="tel"] {
+      width: 75%;
+      padding: 1.2rem 1.5rem;
+      border: 2px solid rgba(93, 93, 93, 0.2);
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      background: white;
+      color: var(--dark-charcoal);
+      transition: all 0.3s ease;
+    }
+
     .form-input-luxe:focus {
       outline: none;
       border-color: var(--primary-gold);
@@ -1433,6 +1448,7 @@ import { Router, RouterLink } from '@angular/router';
     }
   `]
 })
+
 export class RegisterComponent {
   selectedRole: 'buyer' | 'shop' | null = null;
   showPassword = false;
@@ -1441,7 +1457,12 @@ export class RegisterComponent {
 
   registerForm!: FormGroup;
 
-  constructor(public router: Router, private fb: FormBuilder) {
+  constructor(
+    public router: Router,
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private shopService: ShopService // <--- Ajout ici
+  ) {
     this.initializeForm();
   }
 
@@ -1498,7 +1519,7 @@ export class RegisterComponent {
   }
 
   getRoleLabel(): string {
-    switch(this.selectedRole) {
+    switch (this.selectedRole) {
       case 'buyer': return 'Client Privilège';
       case 'shop': return 'Partenaire Boutique';
       default: return '';
@@ -1509,21 +1530,95 @@ export class RegisterComponent {
     return this.registerForm.controls;
   }
 
+  // 'of' permet de créer un Observable vide pour sortir proprement
+
   validateAndSubmit(): void {
-    if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
-
-      const firstInvalid = document.querySelector('.is-invalid');
-      if (firstInvalid) {
-        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
+  // 1. Validation de sécurité
+  if (this.registerForm.invalid) {
+    this.registerForm.markAllAsTouched();
+    const firstInvalid = document.querySelector('.is-invalid');
+    if (firstInvalid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    return;
+  }
 
-    this.loading = true;
-    setTimeout(() => {
+  this.loading = true;
+
+  // 2. Préparation des données pour l'API
+  const formData = { 
+    ...this.registerForm.value, 
+    role: this.selectedRole 
+  };
+
+  console.log('Tentative d\'inscription pour :', formData.email);
+
+  // 3. Début du flux réactif
+  this.authService.register(formData).pipe(
+    // On utilise tap pour debugger dès que l'inscription réussit
+    tap((res) => {
+      console.log('✅ Inscription réussie !');
+      console.log('🔑 Token reçu de l\'API :', res.token);
+      console.log('👤 Utilisateur créé :', res.user);
+      // À ce stade, le service a déjà fait le localStorage.setItem via son propre tap
+    }),
+
+    // switchMap permet de passer à la création du shop si nécessaire
+    switchMap((res) => {
+      if (this.selectedRole === 'shop') {
+        console.log('🚀 Role "shop" détecté. Création de la boutique en cours...');
+        
+        const shopData = {
+          name: formData.shopName,
+          category: formData.shopCategory,
+          description: formData.shopDescription,
+          location: formData.location || 'Non précisée'
+        };
+
+        // L'intercepteur ajoutera automatiquement le token car il est déjà stocké
+        return this.shopService.createShop(shopData);
+      }
+
+      // Si c'est un acheteur (buyer), on continue avec la réponse de l'inscription
+      console.log('ℹ️ Role "buyer" détecté. Pas de boutique à créer.');
+      return of(res); 
+    })
+  ).subscribe({
+    next: (finalResult) => {
+      console.log('✨ Tout le processus est terminé avec succès !', finalResult);
       this.loading = false;
-      this.step = 3;
-    }, 1500);
+      this.step = 3; // On affiche l'écran de succès
+    },
+    error: (err) => {
+      this.loading = false;
+      console.error('❌ Erreur durant le processus :', err);
+      
+      // Gestion d'erreur propre
+      const errorMsg = err.error?.message || "Une erreur est survenue lors de l'inscription.";
+      alert(errorMsg);
+    }
+  });
+}
+
+  // Petites fonctions helper pour garder le code propre
+  private completeRegistration() {
+    this.loading = false;
+    this.step = 3;
+  }
+
+  private handleError(err: any, defaultMsg: string) {
+    this.loading = false;
+    console.error(err);
+    alert(err.error?.message || defaultMsg);
+  }
+
+  connect() {
+    const token = localStorage.getItem('token');
+    const role = this.authService.getUserRole();
+    if (token && role === 'buyer') {
+      this.router.navigate(['/buy']);
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 }
