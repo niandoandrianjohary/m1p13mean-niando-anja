@@ -1,76 +1,26 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "images",
-    "name",
-    "price",
-    "product_category",
-    "shopId",
-    "stock"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "images": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "name": {
-      "type": "string"
-    },
-    "price": {
-      "$ref": "#/$defs/Double"
-    },
-    "product_category": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "shopId": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "stock": {
-      "type": "integer"
-    }
+[
+  {
+    "_id": {"$oid": "65cd30000000000000000001"},
+    "name": "Baguette Tradition",
+    "description": "Pain croustillant au levain",
+    "price": 1200,
+    "image": "https://img.com/baguette.jpg",
+    "category": ["Pain", "Petit déjeuner"],
+    "shopId": {"$oid": "65cd20000000000000000001"},
+    "shopName": "La Baguette Dorée",
+    "stock": 50,
+    "isActive": true
   },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
-      ],
-      "additionalProperties": false
-    },
-    "Double": {
-      "oneOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "$numberDouble": {
-              "enum": [
-                "Infinity",
-                "-Infinity",
-                "NaN"
-              ]
-            }
-          }
-        }
-      ]
-    }
+  {
+    "_id": {"$oid": "65cd30000000000000000002"},
+    "name": "Croissant pur beurre",
+    "description": "Viennoiserie artisanale",
+    "price": 1500,
+    "image": "https://img.com/croissant.jpg",
+    "category": ["Viennoiserie"],
+    "shopId": {"$oid": "65cd20000000000000000001"},
+    "shopName": "La Baguette Dorée",
+    "stock": 30,
+    "isActive": true
   }
-}
+]

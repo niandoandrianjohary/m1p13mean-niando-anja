@@ -1,106 +1,23 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "buyerId",
-    "createdAt",
-    "items",
-    "shopId",
-    "status",
-    "totalPrice"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "buyerId": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "items": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "name",
-          "priceAtPurchase",
-          "productId",
-          "qty"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "priceAtPurchase": {
-            "$ref": "#/$defs/Double"
-          },
-          "productId": {
-            "$ref": "#/$defs/ObjectId"
-          },
-          "qty": {
-            "type": "integer"
-          }
-        }
+[
+  {
+    "_id": {"$oid": "65cd40000000000000000001"},
+    "buyerId": {"$oid": "65cd10000000000000000003"},
+    "buyerName": "Jean Acheteur",
+    "shopId": {"$oid": "65cd20000000000000000001"},
+    "shopName": "La Baguette Dorée",
+    "items": [
+      {
+        "productId": {"$oid": "65cd30000000000000000001"},
+        "name": "Baguette Tradition",
+        "price": 1200,
+        "quantity": 2,
+        "image": "https://img.com/baguette.jpg"
       }
-    },
-    "shopId": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "status": {
-      "type": "string"
-    },
-    "totalPrice": {
-      "$ref": "#/$defs/Double"
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
-      ],
-      "additionalProperties": false
-    },
-    "Double": {
-      "oneOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "$numberDouble": {
-              "enum": [
-                "Infinity",
-                "-Infinity",
-                "NaN"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "$date"
-      ],
-      "additionalProperties": false
-    }
+    ],
+    "status": "pending",
+    "totalPrice": 2400,
+    "paymentMethod": "mvola",
+    "paymentStatus": "pending",
+    "createdAt": {"$date": "2024-02-15T10:00:00Z"}
   }
-}
+]

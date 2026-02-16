@@ -14,32 +14,43 @@ exports.createUser = async (req, res) => {
 
 exports.signupBuyer = async (req, res) => {
     try {
-        // 1. Récupération des données simplifiées
         const { email, password, name, address, phone } = req.body;
 
-        // 2. Hachage du mot de passe (Sécurité)
+        // 1. Vérification PRIORITAIRE : l'email existe-t-il déjà ?
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ 
+                message: 'Cet email est déjà utilisé par un autre compte.' 
+            });
+        }
+
+        // 2. Hachage du mot de passe (Uniquement si l'email est libre)
+        // Le "salt" de 10 est le standard pour un bon compromis sécurité/vitesse
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 3. Création de l'utilisateur selon le nouveau schéma "à plat"
+        // 3. Création de l'utilisateur avec les données validées
         const user = new User({
             email,
             password: hashedPassword,
-            name,        // Directement à la racine
-            role: 'buyer',
-            address,     // Directement à la racine
-            phone        // Directement à la racine
+            name,
+            role: 'buyer', // Forcé en 'buyer' pour cette route sécurisée
+            address,
+            phone
         });
 
-        // 4. Enregistrement
+        // 4. Enregistrement final
         await user.save();
         
         res.status(201).json({ 
             message: 'Acheteur créé avec succès !',
             userId: user._id 
         });
+
     } catch (error) {
-        // Gestion des erreurs (ex: email déjà utilisé)
-        res.status(400).json({ error: error.message });
+        res.status(500).json({ 
+            message: 'Erreur lors de la création du compte', 
+            error: error.message 
+        });
     }
 };
 

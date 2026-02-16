@@ -8,12 +8,16 @@ console.log("Ma clé secrète est :", process.env.JWT_SECRET);
 
 const userRoutes = require('./routes/user.routes');
 const OrdersRoutes = require('./routes/order.routes');
+const shopRoutes = require('./routes/shop.routes');
+const productRoutes = require('./routes/product.routes');
 // Connexion à la base de données
 connectDB();
 
 app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/orders', OrdersRoutes);
+app.use('/api/shops', shopRoutes);
+app.use('/api/products', productRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Serveur lancé sur le port ${PORT}`));

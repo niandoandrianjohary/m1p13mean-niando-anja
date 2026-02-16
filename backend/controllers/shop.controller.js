@@ -1,5 +1,5 @@
-const Shop = require('../models/Shop');
-const User = require('../models/User');
+const Shop = require('../models/shop.model');
+const User = require('../models/user.model');
 
 // 1. CRÉER une boutique (Généralement fait par l'Admin ou via inscription spéciale)
 exports.createShop = async (req, res) => {

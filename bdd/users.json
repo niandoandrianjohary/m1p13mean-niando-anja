@@ -1,57 +1,27 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "email",
-    "password",
-    "profile",
-    "role"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "email": {
-      "type": "string"
-    },
-    "password": {
-      "type": "string"
-    },
-    "profile": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "category": {
-          "type": "string"
-        },
-        "location": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        }
-      }
-    },
-    "role": {
-      "type": "string"
-    }
+[
+  {
+    "_id": {"$oid": "65cd10000000000000000001"},
+    "name": "Admin Central",
+    "email": "admin@mall.com",
+    "password": "password123",
+    "role": "admin",
+    "phone": "0340000001"
   },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
-      ],
-      "additionalProperties": false
-    }
+  {
+    "_id": {"$oid": "65cd10000000000000000002"},
+    "name": "Gerant Boulangerie",
+    "email": "shop@boulangerie.com",
+    "password": "password123",
+    "role": "shop",
+    "phone": "0340000002"
+  },
+  {
+    "_id": {"$oid": "65cd10000000000000000003"},
+    "name": "Jean Acheteur",
+    "email": "jean@client.com",
+    "password": "password123",
+    "role": "buyer",
+    "phone": "0340000003",
+    "address": "Lot IV, Antananarivo"
   }
-}
+]
