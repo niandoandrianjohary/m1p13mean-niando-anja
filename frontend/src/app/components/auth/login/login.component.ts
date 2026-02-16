@@ -562,24 +562,25 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   onSubmit() {
+    if (!this.email || !this.password) return;
+
     this.loading = true;
 
-    // Simulation de délai réseau
-    setTimeout(() => {
-      const success = this.authService.login(this.email, this.password);
-
-      if (success) {
+    // Appel réel à ton API Express via le service
+    this.authService.login(this.email, this.password).subscribe({
+      next: (res) => {
+        // L'API a répondu avec succès (Status 200)
         const role = this.authService.getUserRole();
         const userName = this.authService.currentUserSig()?.name || 'Utilisateur';
 
-        // Message de bienvenue personnalisé
         let welcomeMessage = `Bienvenue ${userName} !`;
         let redirectPath = '/';
 
-        switch(role) {
+        // On garde la logique de redirection de ton binôme
+        switch (role) {
           case 'admin':
             welcomeMessage += '\nAccès au tableau de bord administrateur.';
             redirectPath = '/admin';
@@ -596,11 +597,14 @@ export class LoginComponent {
 
         alert(welcomeMessage);
         this.router.navigate([redirectPath]);
-      } else {
-        alert('Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
+        this.loading = false;
+      },
+      error: (err) => {
+        // L'API a renvoyé une erreur (ex: 401 Unauthorized)
+        console.error('Erreur login:', err);
+        alert('Identifiants incorrects ou erreur serveur.');
+        this.loading = false;
       }
-
-      this.loading = false;
-    }, 1000);
+    });
   }
 }
