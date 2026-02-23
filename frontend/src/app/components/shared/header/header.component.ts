@@ -117,13 +117,15 @@ import { CartService } from '../../../services/cart.service';
       --font-body: 'Inter', sans-serif;
     }
 
-    .header-luxe {
+      .header-luxe {
       font-family: var(--font-body);
-      position: sticky;
+      position: fixed; /* Force le blocage en haut de l'écran */
       top: 0;
-      z-index: 1000;
+      left: 0;
+      width: 100%;    /* Indispensable car fixed sort l'élément du flux */
+      z-index: 1050;  /* Plus haut que tout le reste */
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-    }
+      }
 
     .header-top {
       background: var(--dark-charcoal);
@@ -474,7 +476,7 @@ export class HeaderComponent {
     switch(role) {
       case 'admin': return '/admin';
       case 'shop': return '/shop';
-      case 'buyer': return '/buyer';
+      case 'buyer': return '/buy';
       default: return '/';
     }
   }

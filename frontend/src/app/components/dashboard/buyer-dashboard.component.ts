@@ -16,7 +16,7 @@ import { ProductService } from '../../services/product.service';
     <div class="container-fluid">
       <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 bg-dark text-white vh-100 p-0">
+        <div class="col-md-3 col-lg-2 bg-dark text-white vh-100 p-0 sticky-top">
           <div class="p-4">
             <h4 class="text-center mb-4">Acheteur</h4>
             <nav class="nav flex-column">

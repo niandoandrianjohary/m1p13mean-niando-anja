@@ -27,6 +27,7 @@ import { HeaderComponent } from './components/shared/header/header.component';
     .main-content {
       flex: 1;
       padding: 20px;
+      margin-top: 105px;
       background-color: #f8f9fa;
     }
   `]

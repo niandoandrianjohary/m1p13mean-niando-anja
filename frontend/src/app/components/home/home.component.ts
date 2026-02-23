@@ -1117,7 +1117,7 @@ export class HomeComponent implements OnInit {
     private productService: ProductService,
     private authService: AuthService,
     private cartService: CartService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadFeaturedProducts();
@@ -1142,7 +1142,7 @@ export class HomeComponent implements OnInit {
     const shop = this.shops.find(s => s.name === shopName);
     if (!shop) return 'Boutique';
 
-    const categories: {[key: string]: string} = {
+    const categories: { [key: string]: string } = {
       'fashion': 'Maison de Mode',
       'electronics': 'Technologie Avancée',
       'food': 'Restaurant Étoilé',

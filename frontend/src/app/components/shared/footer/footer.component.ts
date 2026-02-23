@@ -119,6 +119,10 @@ import { Component } from '@angular/core';
     }
 
     .footer-luxe {
+      /* Mettre en premier plan */
+      position: relative;
+      z-index: 2000;
+
       font-family: var(--font-body);
       background: var(--dark-charcoal);
       color: white;
