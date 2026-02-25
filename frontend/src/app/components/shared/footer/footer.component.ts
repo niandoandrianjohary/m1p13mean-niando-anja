@@ -94,12 +94,11 @@ import { Component } from '@angular/core';
               <span class="divider">|</span>
               <a href="#">Politique de confidentialité</a>
             </p>
-            <div class="payment-methods">
-              <i class="fab fa-cc-visa"></i>
-              <i class="fab fa-cc-mastercard"></i>
-              <i class="fab fa-cc-amex"></i>
-              <i class="fab fa-cc-paypal"></i>
-            </div>
+          </div>
+          <div class="credits-line">
+            Projet  réalisé par
+            <span class="student-name">Niando .......</span> &
+            <span class="student-name">Rakotonanahary Anja Liantsoa Stephanie</span>
           </div>
         </div>
       </div>
@@ -119,10 +118,6 @@ import { Component } from '@angular/core';
     }
 
     .footer-luxe {
-      /* Mettre en premier plan */
-      position: relative;
-      z-index: 2000;
-
       font-family: var(--font-body);
       background: var(--dark-charcoal);
       color: white;
@@ -342,6 +337,29 @@ import { Component } from '@angular/core';
       color: rgba(255, 255, 255, 0.7);
     }
 
+    /* Nouveaux styles pour les crédits académiques */
+    .credits-line {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.85rem;
+    }
+
+    .student-name {
+      color: var(--primary-gold);
+      font-weight: 600;
+      position: relative;
+      display: inline-block;
+    }
+
+    .student-name:hover {
+      text-decoration: underline;
+      text-decoration-color: var(--primary-gold);
+      text-underline-offset: 4px;
+    }
+
     /* Responsive */
     @media (max-width: 992px) {
       .footer-grid {
@@ -360,6 +378,17 @@ import { Component } from '@angular/core';
         flex-direction: column;
         gap: 1rem;
         text-align: center;
+      }
+
+      .credits-line {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        font-size: 0.8rem;
+      }
+
+      .student-name {
+        display: block;
+        margin: 0.2rem 0;
       }
     }
   `]
