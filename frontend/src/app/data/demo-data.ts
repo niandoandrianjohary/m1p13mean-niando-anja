@@ -37,34 +37,19 @@ export const DEMO_USERS: User[] = [
 
 export const DEMO_SHOPS: Shop[] = [
   {
-    id: 's1',
-    name: 'Zara Ivandry',
-    ownerId: '2',
+    _id: '6992cdf5448a4a1063676fa3',
+    name: 'ASA',
+    ownerId: {
+      _id: '6992cdf5448a4a1063676fa1',
+      email: 'niando.andraina.andrianjohary@gmail.com',
+      name: 'a',
+      phone: 'q'
+    },
     category: 'fashion',
-    location: 'north-wing',
-    description: 'Boutique de mode internationale',
-    status: 'active',
-    createdAt: new Date('2024-01-01')
-  },
-  {
-    id: 's2',
-    name: 'LC Waikiki',
-    ownerId: '4',
-    category: 'fashion',
-    location: 'south-wing',
-    description: 'Vêtements tendance à prix abordable',
-    status: 'active',
-    createdAt: new Date('2024-01-02')
-  },
-  {
-    id: 's3',
-    name: 'Star',
-    ownerId: '5',
-    category: 'electronics',
-    location: 'east-wing',
-    description: 'Électronique et électroménager',
-    status: 'active',
-    createdAt: new Date('2024-01-03')
+    location: 'Non précisée',
+    description: 'AS',
+    status: 'pending',
+    createdAt: new Date('2026-02-16T07:57:41.215Z')
   }
 ];
 

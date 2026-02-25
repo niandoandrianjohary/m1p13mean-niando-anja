@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ShopService } from '../../services/shop.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -124,11 +125,11 @@ import { AuthService } from '../../services/auth.service';
                 </div>
                 <div class="urgent-info">
                   <strong>{{ shop.name }}</strong>
-                  <p>{{ shop.manager }}</p>
+                  <p>{{ shop.ownerId.name }}</p>
                 </div>
                 <button
                   class="btn-action"
-                  (click)="selectSection('pendingShops')"
+                  (click)="currentSection = 'pendingShops'"
                 >
                   Traiter
                 </button>
@@ -161,19 +162,19 @@ import { AuthService } from '../../services/auth.service';
               <div class="card-body">
                 <div class="info-row">
                   <i class="fas fa-user-tie"></i>
-                  <span>{{ shop.manager }}</span>
+                  <span>{{ shop.ownerId.name }}</span>
                 </div>
                 <div class="info-row">
                   <i class="fas fa-envelope"></i>
-                  <span>{{ shop.email }}</span>
+                  <span>{{ shop.ownerId.email }}</span>
                 </div>
                 <div class="info-row">
                   <i class="fas fa-phone"></i>
-                  <span>{{ shop.phone }}</span>
+                  <span>{{ shop.ownerId.phone }}</span>
                 </div>
                 <div class="info-row">
                   <i class="fas fa-calendar"></i>
-                  <span>{{ formatDate(shop.requestDate) }}</span>
+                  <span>{{ formatDate(shop.createdAt) }}</span>
                 </div>
               </div>
 
@@ -182,7 +183,9 @@ import { AuthService } from '../../services/auth.service';
                   [(ngModel)]="shop.assignedLocation"
                   class="location-select"
                 >
-                  <option value="">Choisir emplacement</option>
+                  <option value="" disabled selected>
+                    Choisir emplacement
+                  </option>
                   <option value="Niveau 1">Niveau 1</option>
                   <option value="Niveau 2">Niveau 2</option>
                   <option value="Food Court">Food Court</option>
@@ -230,7 +233,7 @@ import { AuthService } from '../../services/auth.service';
 
               <div class="shop-info">
                 <h4>{{ shop.name }}</h4>
-                <p class="manager">{{ shop.manager }}</p>
+                <p class="manager">{{ shop.ownerId.name }}</p>
                 <p class="location">
                   <i class="fas fa-map-marker-alt"></i>
                   {{ shop.location }}
@@ -336,9 +339,9 @@ import { AuthService } from '../../services/auth.service';
 
               <div
                 class="user-status"
-                [ngClass]="user.active ? 'active' : 'inactive'"
+                [ngClass]="user.active !== false ? 'active' : 'inactive'"
               >
-                {{ user.active ? 'ACTIF' : 'INACTIF' }}
+                {{ user.active !== false ? 'ACTIF' : 'INACTIF' }}
               </div>
 
               <div class="user-actions">
@@ -347,10 +350,16 @@ import { AuthService } from '../../services/auth.service';
                 </button>
                 <button
                   class="btn-icon"
-                  [ngClass]="user.active ? 'btn-danger' : 'btn-success'"
+                  [ngClass]="
+                    user.active !== false ? 'btn-danger' : 'btn-success'
+                  "
                   (click)="toggleUserStatus(user)"
                 >
-                  <i [class]="user.active ? 'fas fa-ban' : 'fas fa-check'"></i>
+                  <i
+                    [class]="
+                      user.active !== false ? 'fas fa-ban' : 'fas fa-check'
+                    "
+                  ></i>
                 </button>
               </div>
             </div>
@@ -1224,101 +1233,34 @@ export class AdminDashboardComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private shopService: ShopService,
     private router: Router,
   ) {}
 
   ngOnInit() {
-    this.loadData();
+    this.loadPendingShops();
+    this.loadActiveShops();
+    this.loadUsers();
   }
 
-  loadData() {
-    // Données de démonstration
-    this.pendingShops = [
-      {
-        id: '1',
-        name: 'Zara Collection',
-        manager: 'Jean Dupont',
-        email: 'zara@imperia.mg',
-        phone: '034 00 000 00',
-        category: 'fashion',
-        requestDate: new Date('2024-01-20'),
-        assignedLocation: '',
-      },
-      {
-        id: '2',
-        name: 'Electro Home',
-        manager: 'Marie Martin',
-        email: 'electro@imperia.mg',
-        phone: '034 11 111 11',
-        category: 'electronics',
-        requestDate: new Date('2024-01-21'),
-        assignedLocation: '',
-      },
-    ];
+  loadPendingShops() {
+    this.shopService.getPendingShops().subscribe((shops) => {
+      this.pendingShops = shops;
+    });
+  }
 
-    this.activeShops = [
-      {
-        id: 'A1',
-        name: 'Boutique Luxe',
-        manager: 'Pierre Durand',
-        email: 'luxe@imperia.mg',
-        category: 'fashion',
-        location: 'Niveau 1',
-        status: 'active',
-        revenue: 2500000,
-      },
-      {
-        id: 'A2',
-        name: 'Tech Store',
-        manager: 'Sophie Bernard',
-        email: 'tech@imperia.mg',
-        category: 'electronics',
-        location: 'Niveau 2',
-        status: 'active',
-        revenue: 1800000,
-      },
-      {
-        id: 'A3',
-        name: 'Le Gourmet',
-        manager: 'Robert Petit',
-        email: 'gourmet@imperia.mg',
-        category: 'food',
-        location: 'Food Court',
-        status: 'suspended',
-        revenue: 1200000,
-      },
-    ];
+  loadActiveShops() {
+    this.shopService.getActiveShops().subscribe((shops) => {
+      this.activeShops = shops;
+      this.activeShopsCount = shops.length;
+    });
+  }
 
-    this.allUsers = [
-      {
-        id: 'U1',
-        name: 'Admin Principal',
-        email: 'admin@imperia.mg',
-        role: 'admin',
-        active: true,
-        createdAt: new Date('2024-01-01'),
-      },
-      {
-        id: 'U2',
-        name: 'Boutique Zara',
-        email: 'zara@imperia.mg',
-        role: 'shop',
-        active: true,
-        createdAt: new Date('2024-01-05'),
-      },
-      {
-        id: 'U3',
-        name: 'Client VIP',
-        email: 'client@imperia.mg',
-        role: 'buyer',
-        active: true,
-        createdAt: new Date('2024-01-10'),
-      },
-    ];
-
-    this.activeShopsCount = this.activeShops.filter(
-      (s) => s.status === 'active',
-    ).length;
+  loadUsers() {
+    this.authService.getAllUsers().subscribe({
+      next: (users) => (this.allUsers = users),
+      error: (err) => console.error('Erreur chargement users', err),
+    });
   }
 
   toggleMenu() {
@@ -1380,32 +1322,33 @@ export class AdminDashboardComponent implements OnInit {
 
   // Méthodes de gestion
   approveShop(shop: any) {
-    if (!shop.assignedLocation) {
-      alert('Veuillez sélectionner un emplacement');
-      return;
-    }
+    if (!shop.assignedLocation) return; // Sécurité supplémentaire
 
-    this.pendingShops = this.pendingShops.filter((s) => s.id !== shop.id);
-
-    const newShop = {
-      ...shop,
-      status: 'active',
-      location: shop.assignedLocation,
-      revenue: Math.floor(Math.random() * 2000000) + 500000,
-    };
-
-    this.activeShops.unshift(newShop);
-    this.activeShopsCount = this.activeShops.filter(
-      (s) => s.status === 'active',
-    ).length;
-
-    alert(`Boutique "${shop.name}" validée avec succès !`);
+    this.shopService.approveShop(shop._id, shop.assignedLocation).subscribe({
+      next: (updatedShop) => {
+        // On retire la boutique de la liste "en attente" localement
+        this.pendingShops = this.pendingShops.filter((s) => s._id !== shop._id);
+        alert(`La boutique "${shop.name}" a été validée avec succès !`);
+      },
+      error: (err) => {
+        console.error(err);
+        alert("Erreur lors de l'approbation.");
+      },
+    });
   }
 
   rejectShop(shop: any) {
     if (confirm(`Refuser la demande de "${shop.name}" ?`)) {
-      this.pendingShops = this.pendingShops.filter((s) => s.id !== shop.id);
-      alert('Demande refusée');
+      this.shopService.rejectShop(shop._id).subscribe({
+        next: () => {
+          // Mise à jour locale de la liste après succès API
+          this.pendingShops = this.pendingShops.filter(
+            (s) => s._id !== shop._id,
+          );
+          alert('Demande refusée');
+        },
+        error: (err) => alert('Erreur lors du refus'),
+      });
     }
   }
 
@@ -1416,8 +1359,8 @@ export class AdminDashboardComponent implements OnInit {
     return this.activeShops.filter(
       (shop) =>
         shop.name.toLowerCase().includes(query) ||
-        shop.manager.toLowerCase().includes(query) ||
-        shop.email.toLowerCase().includes(query),
+        shop.ownerId.name.toLowerCase().includes(query) || // Correction ici
+        shop.ownerId.email.toLowerCase().includes(query), // Correction ici
     );
   }
 
@@ -1448,6 +1391,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   createUser() {
+    // 1. Validation simple
     if (
       !this.newUser.name ||
       !this.newUser.email ||
@@ -1458,19 +1402,25 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
 
-    const newUser = {
-      id: 'U' + Date.now().toString().slice(-6),
-      name: this.newUser.name,
-      email: this.newUser.email,
-      role: this.newUser.role,
-      active: true,
-      createdAt: new Date(),
-    };
+    // 2. Appel API
+    this.authService.createUser(this.newUser).subscribe({
+      next: (createdUser) => {
+        // 3. Mise à jour de l'UI avec le vrai user (contenant l'_id généré par le serveur)
+        this.allUsers.unshift(createdUser);
 
-    this.allUsers.unshift(newUser);
-    this.newUser = { name: '', email: '', role: '', password: '' };
-    this.showCreateForm = false;
-    alert('Utilisateur créé avec succès');
+        // 4. Reset du formulaire
+        this.newUser = { name: '', email: '', role: '', password: '' };
+        this.showCreateForm = false;
+        alert('Utilisateur créé avec succès');
+      },
+      error: (err) => {
+        console.error(err);
+        alert(
+          'Erreur lors de la création : ' +
+            (err.error?.message || 'Serveur injoignable'),
+        );
+      },
+    });
   }
 
   resetPassword(user: any) {
@@ -1478,8 +1428,10 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   toggleUserStatus(user: any) {
-    user.active = !user.active;
-    alert(`Utilisateur ${user.active ? 'activé' : 'désactivé'}`);
+    this.authService.toggleStatus(user._id).subscribe(() => {
+      // On inverse l'état localement pour l'UI
+      user.active = !user.active;
+    });
   }
 
   logout() {

@@ -17,11 +17,22 @@ export class AuthService {
     const payload = { email, password };
     console.log('AuthService.login: payload =', payload);
     return this.http.post<any>(`${this.apiUrl}/users/login`, payload).pipe(
-      tap(res => {
+      tap((res) => {
         // On stocke l'utilisateur dans le signal et le token dans le localStorage
         this.currentUserSig.set(res.user);
         localStorage.setItem('token', res.token);
-      })
+      }),
+    );
+  }
+
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users`);
+  }
+
+  toggleStatus(id: string): Observable<User> {
+    return this.http.patch<User>(
+      `${this.apiUrl}/users/${id}/toggle-status`,
+      {},
     );
   }
 
@@ -38,6 +49,10 @@ export class AuthService {
     return !!this.currentUserSig();
   }
 
+  createUser(userData: any): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/users/create-user`, userData);
+  }
+
   // src/app/services/auth.service.ts
   // src/app/services/auth.service.ts
   register(userData: any): Observable<any> {
@@ -51,13 +66,13 @@ export class AuthService {
     };
 
     return this.http.post<any>(`${this.apiUrl}/users/signup`, payload).pipe(
-      tap(res => {
+      tap((res) => {
         if (res.token) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('userId', res.userId);
           this.currentUserSig.set(res.user);
         }
-      })
+      }),
     );
   }
 }
@@ -123,5 +138,3 @@ export class AuthService {
 //     return this.currentUser()?.role || null;
 //   }
 // }
-
-

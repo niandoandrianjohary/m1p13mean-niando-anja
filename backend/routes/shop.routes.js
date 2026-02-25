@@ -7,6 +7,12 @@ const role = require('../middleware/role');
 // 1. LIRE toutes les boutiques (Public : Acheteurs, Boutiques et Admin)
 router.get('/', shopCtrl.getAllShops);
 
+// 8. Récupérer les boutiques où le statut est 'pending' (Sécurisé : Admin uniquement)
+router.get('/pending', auth, role(['admin']), shopCtrl.getPendingShops);
+
+// 9. Récupérer les boutiques où le statut est 'active' (Sécurisé : Admin uniquement)
+router.get('/active', auth, role(['admin']), shopCtrl.getActiveShops);
+
 router.get('/owner', auth, shopCtrl.getShopByOwnerId);
 
 // 2. LIRE une boutique spécifique par ID (Public)
@@ -28,4 +34,11 @@ router.delete('/:id', auth, role(['admin']), shopCtrl.deleteShop);
 // 7. CRÉER un utilisateur pour une boutique (Sécurisé : Shop)
 router.post('/shop-user', auth, role(['shop']), shopCtrl.createShopUser);
 
+// 9. REJETER une boutique (Sécurisé : Admin uniquement)
+router.patch('/:id/reject', auth, role(['admin']), shopCtrl.rejectShop);
+
+// 10. APPROUVER une boutique (Sécurisé : Admin uniquement)
+router.patch('/:id/approve', auth, role(['admin']), shopCtrl.approveShop);
+
 module.exports = router;
+

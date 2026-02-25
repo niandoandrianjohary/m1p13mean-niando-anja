@@ -4,7 +4,20 @@ const bcrypt = require('bcryptjs');
 // Créer un utilisateur
 exports.createUser = async (req, res) => {
     try {
-        const newUser = new User(req.body);
+        const { email, password, name, address, phone, role } = req.body;
+
+        // Hachage du mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new User({
+            email,
+            password: hashedPassword,
+            name,
+            address,
+            phone,
+            role
+        });
+
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {

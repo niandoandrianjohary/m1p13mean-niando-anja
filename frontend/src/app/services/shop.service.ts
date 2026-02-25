@@ -18,4 +18,23 @@ export class ShopService {
   getShopByOwnerId(): Observable<Shop> {
     return this.http.get<Shop>(`${this.apiUrl}/owner`);
   }
+
+  // src/app/services/shop.service.ts
+  getPendingShops(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/pending`);
+  }
+
+  // shop.service.ts
+  rejectShop(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/reject`, {});
+  }
+
+  approveShop(id: string, location: string): Observable<Shop> {
+    // On envoie l'ID dans l'URL et la nouvelle location dans le body
+    return this.http.patch<Shop>(`${this.apiUrl}/${id}/approve`, { location });
+  }
+
+  getActiveShops(): Observable<Shop[]> {
+    return this.http.get<Shop[]>(`${this.apiUrl}/active`);
+  }
 }

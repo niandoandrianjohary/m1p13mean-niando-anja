@@ -94,6 +94,26 @@ exports.deleteShop = async (req, res) => {
     }
 };
 
+// Fonction réservée à l'Admin pour rejeter une boutique
+exports.rejectShop = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // On cherche et met à jour uniquement le statut
+        const shop = await Shop.findByIdAndUpdate(
+            id,
+            { status: 'rejected' },
+            { new: true } // Pour renvoyer la boutique mise à jour
+        );
+
+        if (!shop) return res.status(404).json({ message: "Boutique introuvable" });
+
+        res.json({ message: "Boutique rejetée avec succès !", shop });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur suppression", error: error.message });
+    }
+};
+
 // Fonction réservée à l'Admin pour valider une boutique
 exports.verifyShop = async (req, res) => {
     try {
@@ -126,5 +146,51 @@ exports.createShopUser = async (req, res) => {
         res.status(201).json(savedShop);
     } catch (error) {
         res.status(400).json({ message: "Erreur création boutique", error: error.message });
+    }
+};
+
+// Récupérer les boutiques où le statut est 'pending'
+exports.getPendingShops = async (req, res) => {
+    try {
+        const shops = await Shop.find({ status: 'pending' })
+            .populate('ownerId', 'name email phone') // On précise le champ à "remplir" et les infos voulues
+            .lean();
+            
+        res.status(200).json(shops);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};
+
+// Récupérer les boutiques où le statut est 'active'
+exports.getActiveShops = async (req, res) => {
+    try {
+        const shops = await Shop.find({ status: 'active' })
+            .populate('ownerId', 'name email phone') // On précise le champ à "remplir" et les infos voulues
+            .lean();
+            
+        res.status(200).json(shops);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};
+
+// Fonction réservée à l'Admin pour approuver une boutique
+exports.approveShop = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // On cherche et met à jour uniquement le statut
+        const shop = await Shop.findByIdAndUpdate(
+            id,
+            { status: 'active' },
+            { new: true } // Pour renvoyer la boutique mise à jour
+        );
+
+        if (!shop) return res.status(404).json({ message: "Boutique introuvable" });
+
+        res.json({ message: "Boutique approuvée avec succès !", shop });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de l'approbation", error: error.message });
     }
 };
