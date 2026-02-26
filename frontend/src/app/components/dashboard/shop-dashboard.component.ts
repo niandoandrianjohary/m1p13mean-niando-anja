@@ -1,11 +1,15 @@
-
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Product } from '../../models/product.model';
+import { Order } from '../../models/order.model';
 import { AuthService } from '../../services/auth.service';
 import { ProductService } from '../../services/product.service';
+import { OrderService } from '../../services/order.service';
+import { ShopService } from '../../services/shop.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-shop-dashboard',
@@ -21,13 +25,34 @@ import { ProductService } from '../../services/product.service';
             <p class="text-center text-muted mb-4">{{ shopCategory }}</p>
 
             <nav class="nav flex-column">
-              <a class="nav-link text-white" (click)="showDashboard = true; showProductsSection = false; showOrdersSection = false">
+              <a
+                class="nav-link text-white"
+                (click)="
+                  showDashboard = true;
+                  showProductsSection = false;
+                  showOrdersSection = false
+                "
+              >
                 <i class="fas fa-chart-line me-2"></i>Tableau de bord
               </a>
-              <a class="nav-link text-white" (click)="showProductsSection = true; showDashboard = false; showOrdersSection = false">
+              <a
+                class="nav-link text-white"
+                (click)="
+                  showProductsSection = true;
+                  showDashboard = false;
+                  showOrdersSection = false
+                "
+              >
                 <i class="fas fa-boxes me-2"></i>Produits
               </a>
-              <a class="nav-link text-white" (click)="showOrdersSection = true; showDashboard = false; showProductsSection = false">
+              <a
+                class="nav-link text-white"
+                (click)="
+                  showOrdersSection = true;
+                  showDashboard = false;
+                  showProductsSection = false
+                "
+              >
                 <i class="fas fa-shopping-bag me-2"></i>Commandes
               </a>
               <a class="nav-link text-white" (click)="logout()">
@@ -54,13 +79,15 @@ import { ProductService } from '../../services/product.service';
               <div class="col-md-4 mb-3">
                 <div class="card border-primary">
                   <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
                       <div>
                         <h6 class="text-muted">Chiffre d'affaires</h6>
-                        <h3 class="text-primary">{{ formatNumber(totalRevenue) }} Ar</h3>
-                        <small class="text-success">
-                          <i class="fas fa-arrow-up me-1"></i>12% vs mois dernier
-                        </small>
+                        <h3 class="text-primary">
+                          {{ formatNumber(totalRevenue) }} Ar
+                        </h3>
+                        <small class="text-muted">Commandes livrées</small>
                       </div>
                       <div class="bg-primary text-white rounded-circle p-3">
                         <i class="fas fa-money-bill-wave fa-2x"></i>
@@ -73,11 +100,13 @@ import { ProductService } from '../../services/product.service';
               <div class="col-md-4 mb-3">
                 <div class="card border-warning">
                   <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
                       <div>
-                        <h6 class="text-muted">Produits en stock bas</h6>
+                        <h6 class="text-muted">Stock critique</h6>
                         <h3 class="text-warning">{{ lowStockCount }}</h3>
-                        <small>À réapprovisionner</small>
+                        <small>Produits < 10 unités</small>
                       </div>
                       <div class="bg-warning text-white rounded-circle p-3">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>
@@ -90,11 +119,13 @@ import { ProductService } from '../../services/product.service';
               <div class="col-md-4 mb-3">
                 <div class="card border-success">
                   <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
                       <div>
-                        <h6 class="text-muted">Total produits</h6>
+                        <h6 class="text-muted">Total catalogue</h6>
                         <h3 class="text-success">{{ shopProducts.length }}</h3>
-                        <small>Produits actifs</small>
+                        <small>Référencés</small>
                       </div>
                       <div class="bg-success text-white rounded-circle p-3">
                         <i class="fas fa-box fa-2x"></i>
@@ -112,7 +143,10 @@ import { ProductService } from '../../services/product.service';
                 Alertes stock bas
               </div>
               <div class="card-body">
-                <div *ngIf="lowStockProducts.length === 0" class="text-center py-3">
+                <div
+                  *ngIf="lowStockProducts.length === 0"
+                  class="text-center py-3"
+                >
                   <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
                   <p class="mb-0">Aucun produit en stock bas</p>
                 </div>
@@ -130,27 +164,74 @@ import { ProductService } from '../../services/product.service';
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let product of lowStockProducts; let i = index" class="order-item">
+                        <tr
+                          *ngFor="
+                            let product of shopProducts.slice(
+                              (currentPage - 1) * pageSize,
+                              currentPage * pageSize
+                            )
+                          "
+                          class="order-item"
+                        >
                           <td>
-                            <strong>{{ product.name }}</strong><br>
-                            <small class="text-muted">{{ product.category.join(', ') }}</small>
-                          </td>
-                          <td>
-                            <span class="badge bg-danger">{{ product.stock }}</span>
-                          </td>
-                          <td>10</td>
-                          <td>
-                            <div class="input-group" style="max-width: 150px;">
-                              <input type="number" class="form-control form-control-sm"
-                                     [(ngModel)]="restockQuantities[i]" min="1" max="100">
-                              <span class="input-group-text">unités</span>
+                            <img
+                              *ngIf="product.image"
+                              [src]="product.image"
+                              class="rounded"
+                              style="width: 50px; height: 50px; object-fit: cover;"
+                            />
+                            <div
+                              *ngIf="!product.image"
+                              class="bg-light d-flex align-items-center justify-content-center"
+                              style="width: 50px; height: 50px;"
+                            >
+                              <i class="fas fa-image text-muted"></i>
                             </div>
                           </td>
                           <td>
-                            <button class="btn btn-sm btn-success"
-                                    (click)="restockProduct(product, i)">
-                              <i class="fas fa-plus me-1"></i>Commander
-                            </button>
+                            <strong>{{ product.name }}</strong
+                            ><br />
+                            <small class="text-muted"
+                              >{{
+                                product.description | slice: 0 : 50
+                              }}...</small
+                            >
+                          </td>
+                          <td>
+                            <span
+                              class="badge bg-secondary"
+                              *ngFor="let cat of product.category"
+                              >{{ cat }}</span
+                            >
+                          </td>
+                          <td>{{ formatNumber(product.price) }}</td>
+                          <td>
+                            <span
+                              class="badge"
+                              [ngClass]="{
+                                'bg-success': product.stock > 20,
+                                'bg-warning': product.stock <= 20,
+                                'bg-danger': product.stock <= 5,
+                              }"
+                            >
+                              {{ product.stock }}
+                            </span>
+                          </td>
+                          <td>
+                            <div class="btn-group">
+                              <button
+                                class="btn btn-sm btn-outline-primary"
+                                (click)="editProduct(product)"
+                              >
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-danger"
+                                (click)="deleteProduct(product.id)"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       </tbody>
@@ -179,25 +260,45 @@ import { ProductService } from '../../services/product.service';
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let order of getPaginatedOrders()" class="order-item">
-                        <td><strong>#{{ order.id }}</strong></td>
-                        <td>{{ order.customer }}</td>
-                        <td>{{ order.date }}</td>
-                        <td>{{ formatNumber(order.total) }} Ar</td>
+                      <tr
+                        *ngFor="let order of getPaginatedOrders()"
+                        class="order-item"
+                      >
                         <td>
-                          <span class="badge" [ngClass]="{
-                            'bg-warning': order.status === 'pending',
-                            'bg-info': order.status === 'preparing',
-                            'bg-success': order.status === 'ready',
-                            'bg-primary': order.status === 'delivered',
-                            'bg-danger': order.status === 'cancelled'
-                          }">
+                          <strong
+                            >#{{
+                              (order.id || order.id).slice(-6).toUpperCase()
+                            }}</strong
+                          >
+                        </td>
+
+                        <td>{{ order.buyerName }}</td>
+
+                        <td>
+                          {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                        </td>
+
+                        <td>{{ formatNumber(order.totalPrice) }} Ar</td>
+
+                        <td>
+                          <span
+                            class="badge"
+                            [ngClass]="{
+                              'bg-warning': order.status === 'pending',
+                              'bg-info': order.status === 'preparing',
+                              'bg-success': order.status === 'ready',
+                              'bg-primary': order.status === 'delivered',
+                              'bg-danger': order.status === 'cancelled',
+                            }"
+                          >
                             {{ getStatusText(order.status) }}
                           </span>
                         </td>
                         <td>
-                          <button class="btn btn-sm btn-outline-primary"
-                                  (click)="viewOrderDetails(order)">
+                          <button
+                            class="btn btn-sm btn-outline-primary"
+                            (click)="viewOrderDetails(order)"
+                          >
                             <i class="fas fa-eye"></i>
                           </button>
                         </td>
@@ -207,21 +308,28 @@ import { ProductService } from '../../services/product.service';
                 </div>
 
                 <!-- Pagination commandes -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
+                <div
+                  class="d-flex justify-content-between align-items-center mt-3"
+                >
                   <small>
-                    Affichage {{ getOrderStartIndex() }} - {{ getOrderEndIndex() }}
-                    sur {{ filteredOrders().length }} commandes
+                    Affichage {{ getOrderStartIndex() }} -
+                    {{ getOrderEndIndex() }} sur
+                    {{ filteredOrders().length }} commandes
                   </small>
                   <div>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            (click)="previousOrdersPage()"
-                            [disabled]="ordersCurrentPage === 1">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="previousOrdersPage()"
+                      [disabled]="ordersCurrentPage === 1"
+                    >
                       <i class="fas fa-chevron-left"></i>
                     </button>
                     <span class="mx-2">Page {{ ordersCurrentPage }}</span>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            (click)="nextOrdersPage()"
-                            [disabled]="ordersCurrentPage === totalOrdersPages()">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="nextOrdersPage()"
+                      [disabled]="ordersCurrentPage === totalOrdersPages()"
+                    >
                       <i class="fas fa-chevron-right"></i>
                     </button>
                   </div>
@@ -249,45 +357,64 @@ import { ProductService } from '../../services/product.service';
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Nom du produit *</label>
-                    <input type="text" class="form-control"
-                           [(ngModel)]="newProduct.name"
-                           placeholder="Ex: Chemise Blanche Homme">
+                    <input
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="newProduct.name"
+                      placeholder="Ex: Chemise Blanche Homme"
+                    />
                   </div>
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Catégorie</label>
-                    <input type="text" class="form-control"
-                           [(ngModel)]="newProduct.category"
-                           placeholder="Ex: Mode, Vêtements">
+                    <input
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="newProduct.category"
+                      placeholder="Ex: Mode, Vêtements"
+                    />
                   </div>
                 </div>
 
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Prix (Ar) *</label>
-                    <input type="number" class="form-control"
-                           [(ngModel)]="newProduct.price"
-                           min="0" step="100">
+                    <input
+                      type="number"
+                      class="form-control"
+                      [(ngModel)]="newProduct.price"
+                      min="0"
+                      step="100"
+                    />
                   </div>
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Stock initial *</label>
-                    <input type="number" class="form-control"
-                           [(ngModel)]="newProduct.stock"
-                           min="0">
+                    <input
+                      type="number"
+                      class="form-control"
+                      [(ngModel)]="newProduct.stock"
+                      min="0"
+                    />
                   </div>
                 </div>
 
                 <div class="mb-3">
                   <label class="form-label">Description</label>
-                  <textarea class="form-control" rows="3"
-                            [(ngModel)]="newProduct.description"
-                            placeholder="Description du produit..."></textarea>
+                  <textarea
+                    class="form-control"
+                    rows="3"
+                    [(ngModel)]="newProduct.description"
+                    placeholder="Description du produit..."
+                  ></textarea>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
                   <button class="btn btn-success" (click)="addProduct()">
                     <i class="fas fa-save me-2"></i>Enregistrer
                   </button>
-                  <button class="btn btn-outline-secondary" (click)="cancelAddProduct()">
+                  <button
+                    class="btn btn-outline-secondary"
+                    (click)="cancelAddProduct()"
+                  >
                     Annuler
                   </button>
                 </div>
@@ -296,13 +423,21 @@ import { ProductService } from '../../services/product.service';
 
             <!-- Liste des produits -->
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
+              <div
+                class="card-header d-flex justify-content-between align-items-center"
+              >
                 <h5 class="mb-0">Liste des produits</h5>
                 <div>
-                  <button class="btn btn-sm btn-outline-primary me-2" (click)="exportProductsPDF()">
+                  <button
+                    class="btn btn-sm btn-outline-primary me-2"
+                    (click)="exportProductsPDF()"
+                  >
                     <i class="fas fa-file-pdf me-1"></i>PDF
                   </button>
-                  <button class="btn btn-sm btn-outline-success" (click)="exportProductsExcel()">
+                  <button
+                    class="btn btn-sm btn-outline-success"
+                    (click)="exportProductsExcel()"
+                  >
                     <i class="fas fa-file-excel me-1"></i>Excel
                   </button>
                 </div>
@@ -321,17 +456,29 @@ import { ProductService } from '../../services/product.service';
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let product of shopProducts.slice((currentPage-1)*pageSize, currentPage*pageSize)"
-                          class="order-item">
+                      <tr
+                        *ngFor="
+                          let product of shopProducts.slice(
+                            (currentPage - 1) * pageSize,
+                            currentPage * pageSize
+                          )
+                        "
+                        class="order-item"
+                      >
                         <td>
-                          <div class="bg-light d-flex align-items-center justify-content-center"
-                               style="width: 60px; height: 60px;">
+                          <div
+                            class="bg-light d-flex align-items-center justify-content-center"
+                            style="width: 60px; height: 60px;"
+                          >
                             <i class="fas fa-image text-muted"></i>
                           </div>
                         </td>
                         <td>
-                          <strong>{{ product.name }}</strong><br>
-                          <small class="text-muted">{{ product.description }}</small>
+                          <strong>{{ product.name }}</strong
+                          ><br />
+                          <small class="text-muted">{{
+                            product.description
+                          }}</small>
                         </td>
                         <td>
                           <span class="badge bg-secondary">
@@ -340,26 +487,36 @@ import { ProductService } from '../../services/product.service';
                         </td>
                         <td>{{ formatNumber(product.price) }}</td>
                         <td>
-                          <span class="badge" [ngClass]="{
-                            'bg-success': product.stock > 20,
-                            'bg-warning': product.stock <= 20 && product.stock > 5,
-                            'bg-danger': product.stock <= 5
-                          }">
+                          <span
+                            class="badge"
+                            [ngClass]="{
+                              'bg-success': product.stock > 20,
+                              'bg-warning':
+                                product.stock <= 20 && product.stock > 5,
+                              'bg-danger': product.stock <= 5,
+                            }"
+                          >
                             {{ product.stock }}
                           </span>
                         </td>
                         <td>
                           <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary"
-                                    (click)="editProduct(product)">
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              (click)="editProduct(product)"
+                            >
                               <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-warning"
-                                    (click)="quickRestock(product)">
+                            <button
+                              class="btn btn-sm btn-outline-warning"
+                              (click)="quickRestock(product)"
+                            >
                               <i class="fas fa-plus"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger"
-                                    (click)="deleteProduct(product.id)">
+                            <button
+                              class="btn btn-sm btn-outline-danger"
+                              (click)="deleteProduct(product.id)"
+                            >
                               <i class="fas fa-trash"></i>
                             </button>
                           </div>
@@ -370,21 +527,28 @@ import { ProductService } from '../../services/product.service';
                 </div>
 
                 <!-- Pagination produits -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
+                <div
+                  class="d-flex justify-content-between align-items-center mt-3"
+                >
                   <small>
-                    Affichage {{ getProductStartIndex() }} - {{ getProductEndIndex() }}
-                    sur {{ shopProducts.length }} produits
+                    Affichage {{ getProductStartIndex() }} -
+                    {{ getProductEndIndex() }} sur
+                    {{ shopProducts.length }} produits
                   </small>
                   <div>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            (click)="previousProductPage()"
-                            [disabled]="currentPage === 1">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="previousProductPage()"
+                      [disabled]="currentPage === 1"
+                    >
                       <i class="fas fa-chevron-left"></i>
                     </button>
                     <span class="mx-2">Page {{ currentPage }}</span>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            (click)="nextProductPage()"
-                            [disabled]="currentPage === totalProductPages()">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="nextProductPage()"
+                      [disabled]="currentPage === totalProductPages()"
+                    >
                       <i class="fas fa-chevron-right"></i>
                     </button>
                   </div>
@@ -398,10 +562,16 @@ import { ProductService } from '../../services/product.service';
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h2>Gestion des commandes</h2>
               <div>
-                <button class="btn btn-outline-primary me-2" (click)="exportOrdersPDF()">
+                <button
+                  class="btn btn-outline-primary me-2"
+                  (click)="exportOrdersPDF()"
+                >
                   <i class="fas fa-file-pdf me-1"></i>PDF
                 </button>
-                <button class="btn btn-outline-success" (click)="exportOrdersExcel()">
+                <button
+                  class="btn btn-outline-success"
+                  (click)="exportOrdersExcel()"
+                >
                   <i class="fas fa-file-excel me-1"></i>Excel
                 </button>
               </div>
@@ -423,11 +593,19 @@ import { ProductService } from '../../services/product.service';
                   </div>
                   <div class="col-md-4 mb-3">
                     <label class="form-label">Date début</label>
-                    <input type="date" class="form-control" [(ngModel)]="orderStartDate">
+                    <input
+                      type="date"
+                      class="form-control"
+                      [(ngModel)]="orderStartDate"
+                    />
                   </div>
                   <div class="col-md-4 mb-3">
                     <label class="form-label">Date fin</label>
-                    <input type="date" class="form-control" [(ngModel)]="orderEndDate">
+                    <input
+                      type="date"
+                      class="form-control"
+                      [(ngModel)]="orderEndDate"
+                    />
                   </div>
                 </div>
               </div>
@@ -439,95 +617,94 @@ import { ProductService } from '../../services/product.service';
                 <h5 class="mb-0">Commandes récentes</h5>
               </div>
               <div class="card-body">
-                <div *ngFor="let order of getPaginatedOrders()" class="card mb-3 order-item">
+                <div
+                  *ngFor="let order of getPaginatedOrders()"
+                  class="card mb-3 order-item"
+                >
                   <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div
+                      class="d-flex justify-content-between align-items-start mb-3"
+                    >
                       <div>
-                        <h5>Commande #{{ order.id }}</h5>
+                        <h5>Commande #{{ order.id.slice(-6) }}</h5>
                         <p class="text-muted mb-1">
-                          <i class="fas fa-user me-1"></i>{{ order.customer }}
+                          <i class="fas fa-user me-1"></i>{{ order.buyerName }}
                         </p>
                         <small class="text-muted">
-                          <i class="fas fa-calendar me-1"></i>{{ order.date }}
+                          <i class="fas fa-calendar me-1"></i
+                          >{{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}
                         </small>
                       </div>
                       <div class="text-end">
-                        <h4 class="text-primary">{{ formatNumber(order.total) }} Ar</h4>
-                        <span class="badge" [ngClass]="{
-                          'bg-warning': order.status === 'pending',
-                          'bg-info': order.status === 'preparing',
-                          'bg-success': order.status === 'ready',
-                          'bg-primary': order.status === 'delivered',
-                          'bg-danger': order.status === 'cancelled'
-                        }">
+                        <h4 class="text-primary">
+                          {{ formatNumber(order.totalPrice) }} Ar
+                        </h4>
+                        <span
+                          class="badge"
+                          [ngClass]="{
+                            'bg-warning': order.status === 'pending',
+                            'bg-info': order.status === 'preparing',
+                            'bg-success': order.status === 'ready',
+                            'bg-primary': order.status === 'delivered',
+                          }"
+                        >
                           {{ getStatusText(order.status) }}
                         </span>
                       </div>
                     </div>
 
-                    <!-- Articles de la commande -->
                     <div class="mb-3">
                       <h6>Articles</h6>
                       <div class="row">
-                        <div class="col-md-6 mb-2" *ngFor="let item of order.items">
-                          <div class="d-flex align-items-center bg-light p-2 rounded">
-                            <div class="bg-white p-1 me-2 rounded">
-                              <i class="fas fa-box text-muted"></i>
-                            </div>
+                        <div
+                          class="col-md-6 mb-2"
+                          *ngFor="let item of order.items"
+                        >
+                          <div
+                            class="d-flex align-items-center bg-light p-2 rounded"
+                          >
                             <div class="flex-grow-1">
-                              <strong>{{ item.name }}</strong><br>
-                              <small>{{ item.quantity }} × {{ formatNumber(item.price) }} Ar</small>
+                              <strong>{{ item.name }}</strong
+                              ><br />
+                              <small
+                                >{{ item.quantity }} ×
+                                {{ formatNumber(item.price) }} Ar</small
+                              >
                             </div>
                             <div class="text-end">
-                              <strong>{{ formatNumber(item.price * item.quantity) }} Ar</strong>
+                              <strong
+                                >{{
+                                  formatNumber(item.price * item.quantity)
+                                }}
+                                Ar</strong
+                              >
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <!-- Timeline de suivi -->
-                    <div class="timeline mb-3">
-                      <div class="timeline-step" [class.active]="order.status === 'pending'">
-                        <div class="step-circle">1</div>
-                        <span>En attente</span>
-                      </div>
-                      <div class="timeline-step" [class.active]="order.status === 'preparing'">
-                        <div class="step-circle">2</div>
-                        <span>En préparation</span>
-                      </div>
-                      <div class="timeline-step" [class.active]="order.status === 'ready'">
-                        <div class="step-circle">3</div>
-                        <span>Prêt</span>
-                      </div>
-                      <div class="timeline-step" [class.active]="order.status === 'delivered'">
-                        <div class="step-circle">4</div>
-                        <span>Livré</span>
-                      </div>
-                    </div>
-
-                    <!-- Actions -->
                     <div class="d-flex justify-content-end gap-2">
-                      <button class="btn btn-outline-primary" (click)="viewOrderDetails(order)">
-                        <i class="fas fa-eye me-1"></i>Détails
-                      </button>
-                      <button class="btn btn-outline-success" (click)="printOrder(order)">
-                        <i class="fas fa-print me-1"></i>Imprimer
-                      </button>
                       <div class="btn-group">
-                        <button class="btn btn-outline-secondary"
-                                (click)="updateOrderStatus(order.id, 'preparing')"
-                                [disabled]="order.status !== 'pending'">
-                          En préparation
+                        <button
+                          class="btn btn-outline-secondary"
+                          (click)="updateOrderStatus(order.id, 'preparing')"
+                          [disabled]="order.status !== 'pending'"
+                        >
+                          Préparer
                         </button>
-                        <button class="btn btn-outline-warning"
-                                (click)="updateOrderStatus(order.id, 'ready')"
-                                [disabled]="order.status !== 'preparing'">
+                        <button
+                          class="btn btn-outline-warning"
+                          (click)="updateOrderStatus(order.id, 'ready')"
+                          [disabled]="order.status !== 'preparing'"
+                        >
                           Prêt
                         </button>
-                        <button class="btn btn-outline-success"
-                                (click)="updateOrderStatus(order.id, 'delivered')"
-                                [disabled]="order.status !== 'ready'">
+                        <button
+                          class="btn btn-outline-success"
+                          (click)="updateOrderStatus(order.id, 'delivered')"
+                          [disabled]="order.status !== 'ready'"
+                        >
                           Livré
                         </button>
                       </div>
@@ -536,21 +713,28 @@ import { ProductService } from '../../services/product.service';
                 </div>
 
                 <!-- Pagination commandes -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
+                <div
+                  class="d-flex justify-content-between align-items-center mt-3"
+                >
                   <small>
-                    Affichage {{ getOrderStartIndex() }} - {{ getOrderEndIndex() }}
-                    sur {{ filteredOrders().length }} commandes
+                    Affichage {{ getOrderStartIndex() }} -
+                    {{ getOrderEndIndex() }} sur
+                    {{ filteredOrders().length }} commandes
                   </small>
                   <div>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            (click)="previousOrdersPage()"
-                            [disabled]="ordersCurrentPage === 1">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="previousOrdersPage()"
+                      [disabled]="ordersCurrentPage === 1"
+                    >
                       <i class="fas fa-chevron-left"></i>
                     </button>
                     <span class="mx-2">Page {{ ordersCurrentPage }}</span>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            (click)="nextOrdersPage()"
-                            [disabled]="ordersCurrentPage === totalOrdersPages()">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="nextOrdersPage()"
+                      [disabled]="ordersCurrentPage === totalOrdersPages()"
+                    >
                       <i class="fas fa-chevron-right"></i>
                     </button>
                   </div>
@@ -562,103 +746,106 @@ import { ProductService } from '../../services/product.service';
       </div>
     </div>
   `,
-  styles: [`
-    .nav-link {
-      cursor: pointer;
-      transition: all 0.3s;
-      border-radius: 5px;
-      padding: 10px 15px;
-      margin: 3px 0;
+  styles: [
+    `
+      .nav-link {
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 5px;
+        padding: 10px 15px;
+        margin: 3px 0;
 
-      &:hover {
-        background: rgba(255,255,255,0.1);
-        transform: translateX(5px);
-      }
-    }
-
-    .card {
-      border: none;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-
-      &:hover {
-        transform: translateY(-2px);
-      }
-    }
-
-    .timeline {
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      margin: 20px 0;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 15px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #dee2e6;
-        z-index: 1;
-      }
-    }
-
-    .timeline-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      z-index: 2;
-      flex: 1;
-
-      &.active {
-        .step-circle {
-          background: var(--primary-color);
-          border-color: var(--primary-color);
-          color: white;
-        }
-
-        span {
-          font-weight: bold;
-          color: var(--primary-color);
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: translateX(5px);
         }
       }
-    }
 
-    .step-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: white;
-      border: 2px solid #dee2e6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 8px;
-      font-size: 12px;
-    }
+      .card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
 
-    .order-item {
-      background: #f8f9fa;
-      transition: all 0.3s;
-
-      &:hover {
-        background: #e9ecef;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        &:hover {
+          transform: translateY(-2px);
+        }
       }
-    }
 
-    .btn-group .btn {
-      border-radius: 5px !important;
-      margin: 0 2px;
-    }
-  `]
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 20px 0;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 15px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: #dee2e6;
+          z-index: 1;
+        }
+      }
+
+      .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+
+        &.active {
+          .step-circle {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+          }
+
+          span {
+            font-weight: bold;
+            color: var(--primary-color);
+          }
+        }
+      }
+
+      .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+
+      .order-item {
+        background: #f8f9fa;
+        transition: all 0.3s;
+
+        &:hover {
+          background: #e9ecef;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      .btn-group .btn {
+        border-radius: 5px !important;
+        margin: 0 2px;
+      }
+    `,
+  ],
 })
 export class ShopDashboardComponent implements OnInit {
   // Informations boutique
-  shopName = 'Zara Ivandry';
-  shopCategory = 'Mode';
+  shopName = '';
+  shopCategory = '';
+  currentShopId = '';
 
   // Navigation
   showDashboard = true;
@@ -677,7 +864,8 @@ export class ShopDashboardComponent implements OnInit {
   pageSize = 10;
 
   // Gestion commandes
-  demoOrders: any[] = [];
+  // demoOrders: any[] = [];
+  allOrders: Order[] = [];
   orderFilterStatus = '';
   orderStartDate = '';
   orderEndDate = '';
@@ -691,87 +879,51 @@ export class ShopDashboardComponent implements OnInit {
     description: '',
     price: 0,
     stock: 0,
-    category: ''
+    category: '',
   };
 
   constructor(
     private authService: AuthService,
     private productService: ProductService,
-    private router: Router
+    private orderService: OrderService, // Nouveau service
+    private shopService: ShopService, // Pour récupérer le shop
+    private router: Router,
   ) {}
 
   ngOnInit() {
-    this.loadShopProducts();
-    this.loadDemoOrders();
+    this.loadInitialData();
+  }
+
+  loadInitialData() {
+    // 1. Charger les infos de la boutique connectée
+    this.shopService.getConnectedShop().subscribe((shop) => {
+      this.shopName = shop.name;
+      this.shopCategory = shop.category;
+      this.currentShopId = shop._id;
+
+      // 2. Une fois le shop chargé, on charge ses produits et commandes
+      this.loadShopProducts();
+      this.loadShopOrders();
+    });
   }
 
   loadShopProducts() {
-    // Pour la démo, on prend les produits de Zara (shopId: s1)
-    this.shopProducts = this.productService.getAllProducts()
-      .filter(p => p.shopId === 's1');
-
-    this.lowStockProducts = this.shopProducts.filter(p => p.stock <= 10);
-    this.lowStockCount = this.lowStockProducts.length;
-
-    // Initialiser les quantités de réapprovisionnement
-    this.restockQuantities = this.lowStockProducts.map(() => 10);
+    this.productService.getMyShopProducts().subscribe((products) => {
+      this.shopProducts = products;
+      this.lowStockProducts = this.shopProducts.filter((p) => p.stock <= 10);
+      this.lowStockCount = this.lowStockProducts.length;
+      this.restockQuantities = this.lowStockProducts.map(() => 10);
+    });
   }
 
-  loadDemoOrders() {
-    this.demoOrders = [
-      {
-        id: '001',
-        customer: 'Jean Dupont',
-        total: 90000,
-        status: 'pending',
-        date: '2024-01-20',
-        items: [
-          { name: 'Chemise Blanche Homme', price: 45000, quantity: 2 }
-        ]
-      },
-      {
-        id: '002',
-        customer: 'Marie Lambert',
-        total: 45000,
-        status: 'preparing',
-        date: '2024-01-19',
-        items: [
-          { name: 'T-shirt Décontracté', price: 25000, quantity: 1 },
-          { name: 'Chemise Blanche Homme', price: 45000, quantity: 1 }
-        ]
-      },
-      {
-        id: '003',
-        customer: 'Paul Martin',
-        total: 125000,
-        status: 'delivered',
-        date: '2024-01-18',
-        items: [
-          { name: 'Jean Slim Noir', price: 85000, quantity: 1 },
-          { name: 'Chemise Blanche Homme', price: 45000, quantity: 1 }
-        ]
-      },
-      {
-        id: '004',
-        customer: 'Sophie Petit',
-        total: 25000,
-        status: 'ready',
-        date: '2024-01-21',
-        items: [
-          { name: 'T-shirt Décontracté', price: 25000, quantity: 1 }
-        ]
-      },
-      {
-        id: '005',
-        customer: 'Robert Durand',
-        total: 85000,
-        status: 'pending',
-        date: '2024-01-21',
-        items: [
-          { name: 'Jean Slim Noir', price: 85000, quantity: 1 }
-        ]
-      }
-    ];
+  loadShopOrders() {
+    this.orderService.getMyShopOrders().subscribe((orders) => {
+      this.allOrders = orders;
+      // Calcul du revenu total basé sur les commandes livrées
+      this.totalRevenue = orders
+        .filter((o) => o.status === 'delivered')
+        .reduce((sum, o) => sum + o.totalPrice, 0);
+    });
   }
 
   // Méthodes utilitaires
@@ -784,17 +936,17 @@ export class ShopDashboardComponent implements OnInit {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   }
 
   getStatusText(status: string): string {
-    const statusMap: {[key: string]: string} = {
-      'pending': 'En attente',
-      'preparing': 'En préparation',
-      'ready': 'Prêt à livrer',
-      'delivered': 'Livré',
-      'cancelled': 'Annulé'
+    const statusMap: { [key: string]: string } = {
+      pending: 'En attente',
+      preparing: 'En préparation',
+      ready: 'Prêt à livrer',
+      delivered: 'Livré',
+      cancelled: 'Annulé',
     };
     return statusMap[status] || status;
   }
@@ -821,35 +973,35 @@ export class ShopDashboardComponent implements OnInit {
 
   // Gestion produits
   addProduct() {
-    if (!this.newProduct.name || !this.newProduct.price || !this.newProduct.stock) {
-      alert('Veuillez remplir les champs obligatoires (Nom, Prix, Stock)');
-      return;
-    }
-
-    const product: any = {
-      name: this.newProduct.name,
-      description: this.newProduct.description,
-      price: this.newProduct.price,
-      stock: this.newProduct.stock,
-      image: '',
-      category: this.newProduct.category ? [this.newProduct.category] : ['non-catégorisé'],
-      shopId: 's1',
+    const product: Partial<Product> = {
+      ...this.newProduct,
+      category: this.newProduct.category ? [this.newProduct.category] : [],
+      shopId: this.currentShopId,
       shopName: this.shopName,
-      isActive: true
+      isActive: true,
     };
 
-    this.productService.addProduct(product);
-    this.loadShopProducts();
-
-    // Réinitialiser le formulaire
-    this.newProduct = { name: '', description: '', price: 0, stock: 0, category: '' };
-    this.showAddForm = false;
-
-    alert('Produit ajouté avec succès!');
+    this.productService.addProduct(product).subscribe(() => {
+      this.loadShopProducts();
+      this.showAddForm = false;
+      this.newProduct = {
+        name: '',
+        description: '',
+        price: 0,
+        stock: 0,
+        category: '',
+      };
+    });
   }
 
   cancelAddProduct() {
-    this.newProduct = { name: '', description: '', price: 0, stock: 0, category: '' };
+    this.newProduct = {
+      name: '',
+      description: '',
+      price: 0,
+      stock: 0,
+      category: '',
+    };
     this.showAddForm = false;
   }
 
@@ -860,7 +1012,7 @@ export class ShopDashboardComponent implements OnInit {
       if (newPrice) {
         this.productService.updateProduct(product.id, {
           name: newName,
-          price: Number(newPrice)
+          price: Number(newPrice),
         });
         this.loadShopProducts();
         alert('Produit mis à jour!');
@@ -877,7 +1029,10 @@ export class ShopDashboardComponent implements OnInit {
   }
 
   quickRestock(product: Product) {
-    const quantity = prompt(`Quantité à ajouter au stock de "${product.name}" :`, '10');
+    const quantity = prompt(
+      `Quantité à ajouter au stock de "${product.name}" :`,
+      '10',
+    );
     if (quantity && !isNaN(Number(quantity))) {
       const newStock = product.stock + Number(quantity);
       this.productService.updateProduct(product.id, { stock: newStock });
@@ -923,31 +1078,33 @@ export class ShopDashboardComponent implements OnInit {
 
   // Gestion commandes
   filteredOrders() {
-    let orders = [...this.demoOrders];
+    let orders = [...this.allOrders];
 
     if (this.orderFilterStatus) {
-      orders = orders.filter(o => o.status === this.orderFilterStatus);
+      orders = orders.filter((o) => o.status === this.orderFilterStatus);
     }
 
     // Filtrage par date (simplifié)
     if (this.orderStartDate) {
-      orders = orders.filter(o => o.date >= this.orderStartDate);
+      orders = orders.filter(
+        (o) => o.createdAt.toISOString() >= this.orderStartDate.toString(),
+      );
     }
 
     if (this.orderEndDate) {
-      orders = orders.filter(o => o.date <= this.orderEndDate);
+      orders = orders.filter(
+        (o) => o.createdAt.toISOString() <= this.orderEndDate.toString(),
+      );
     }
 
     return orders;
   }
 
-  updateOrderStatus(orderId: string, newStatus: string) {
-    const order = this.demoOrders.find(o => o.id === orderId);
-    if (order) {
-      const oldStatus = order.status;
-      order.status = newStatus;
-      alert(`Commande #${orderId} : ${this.getStatusText(oldStatus)} → ${this.getStatusText(newStatus)}`);
-    }
+  updateOrderStatus(orderId: string, newStatus: any) {
+    this.orderService.updateOrderStatus(orderId, newStatus).subscribe(() => {
+      this.loadShopOrders(); // Rafraîchir la liste
+      alert(`Statut mis à jour : ${this.getStatusText(newStatus)}`);
+    });
   }
 
   getPaginatedOrders() {
@@ -973,14 +1130,19 @@ export class ShopDashboardComponent implements OnInit {
   }
 
   viewOrderDetails(order: any) {
-    alert(`Détails de la commande #${order.id}\n\n` +
-          `Client: ${order.customer}\n` +
-          `Total: ${this.formatNumber(order.total)} Ar\n` +
-          `Statut: ${this.getStatusText(order.status)}\n` +
-          `Date: ${order.date}\n\n` +
-          `Articles:\n${order.items.map((item: any) =>
-            `- ${item.name} (${item.quantity} × ${this.formatNumber(item.price)} Ar)`
-          ).join('\n')}`);
+    alert(
+      `Détails de la commande #${order.id}\n\n` +
+        `Client: ${order.customer}\n` +
+        `Total: ${this.formatNumber(order.total)} Ar\n` +
+        `Statut: ${this.getStatusText(order.status)}\n` +
+        `Date: ${order.date}\n\n` +
+        `Articles:\n${order.items
+          .map(
+            (item: any) =>
+              `- ${item.name} (${item.quantity} × ${this.formatNumber(item.price)} Ar)`,
+          )
+          .join('\n')}`,
+    );
   }
 
   printOrder(order: any) {
@@ -1022,14 +1184,18 @@ export class ShopDashboardComponent implements OnInit {
                 </tr>
               </thead>
               <tbody>
-                ${order.items.map((item: any) => `
+                ${order.items
+                  .map(
+                    (item: any) => `
                   <tr>
                     <td>${item.name}</td>
                     <td>${this.formatNumber(item.price)} Ar</td>
                     <td>${item.quantity}</td>
                     <td>${this.formatNumber(item.price * item.quantity)} Ar</td>
                   </tr>
-                `).join('')}
+                `,
+                  )
+                  .join('')}
               </tbody>
             </table>
             <div class="total">
@@ -1050,10 +1216,14 @@ export class ShopDashboardComponent implements OnInit {
   // Export PDF/Excel
   exportProductsPDF() {
     try {
-      alert('PDF exporté (simulation) - ' + this.shopProducts.length + ' produits');
+      alert(
+        'PDF exporté (simulation) - ' + this.shopProducts.length + ' produits',
+      );
     } catch (error) {
       console.error('Erreur PDF:', error);
-      alert('PDF exporté (simulation) - ' + this.shopProducts.length + ' produits');
+      alert(
+        'PDF exporté (simulation) - ' + this.shopProducts.length + ' produits',
+      );
     }
   }
 
@@ -1062,17 +1232,18 @@ export class ShopDashboardComponent implements OnInit {
     const data = {
       boutique: this.shopName,
       date: new Date().toLocaleDateString('fr-MG'),
-      produits: this.shopProducts.map(p => ({
+      produits: this.shopProducts.map((p) => ({
         nom: p.name,
         description: p.description,
         prix: p.price,
         stock: p.stock,
-        catégorie: p.category.join(', ')
-      }))
+        catégorie: p.category.join(', '),
+      })),
     };
 
     const dataStr = JSON.stringify(data, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const dataUri =
+      'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -1083,7 +1254,60 @@ export class ShopDashboardComponent implements OnInit {
   }
 
   exportOrdersPDF() {
-    alert('PDF des commandes exporté (simulation) - ' + this.demoOrders.length + ' commandes');
+    const doc = new jsPDF();
+    const dateStr = new Date().toLocaleDateString('fr-MG');
+
+    // 1. En-tête du document
+    doc.setFontSize(18);
+    doc.text(`Rapport de Commandes - ${this.shopName}`, 14, 20);
+
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Généré le : ${dateStr}`, 14, 30);
+    doc.text(
+      `Chiffre d'affaires total : ${this.formatNumber(this.totalRevenue)} Ar`,
+      14,
+      37,
+    );
+
+    // 2. Préparation des données pour le tableau
+    // On utilise allOrders (vos données API) au lieu de demoOrders
+    const tableData = this.allOrders.map((order) => [
+      order.id.slice(-6).toUpperCase(), // ID court
+      order.buyerName,
+      new Date(order.createdAt).toLocaleDateString('fr-MG'),
+      this.getStatusText(order.status),
+      `${this.formatNumber(order.totalPrice)} Ar`,
+    ]);
+
+    // 3. Génération du tableau
+    autoTable(doc, {
+      startY: 45,
+      head: [['Réf', 'Client', 'Date', 'Statut', 'Montant']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [26, 35, 126] }, // Bleu marine professionnel
+      styles: { fontSize: 9 },
+      columnStyles: {
+        4: { halign: 'right' }, // Aligner le montant à droite
+      },
+    });
+
+    // 4. Pied de page
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(
+        `Page ${i} sur ${pageCount} - SOA PLAZA`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' },
+      );
+    }
+
+    // 5. Sauvegarde
+    doc.save(`commandes_${this.shopName.replace(/\s+/g, '_')}_${dateStr}.pdf`);
   }
 
   exportOrdersExcel() {

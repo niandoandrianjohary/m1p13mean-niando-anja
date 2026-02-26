@@ -37,4 +37,8 @@ export class ShopService {
   getActiveShops(): Observable<Shop[]> {
     return this.http.get<Shop[]>(`${this.apiUrl}/active`);
   }
+
+  getConnectedShop(): Observable<Shop> {
+    return this.http.get<Shop>(`${this.apiUrl}/shops/connected-shop`);
+  }
 }

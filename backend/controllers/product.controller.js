@@ -48,3 +48,10 @@ exports.getProductsByCategory = async (req, res) => {
         res.json(products);
     } catch (e) { res.status(400).json({ error: e.message }); }
 };
+
+exports.getProductsByConnectedShop = async (req, res) => {
+    try {
+        const products = await Product.find({ shopId: req.auth.userId });
+        res.json(products);
+    } catch (e) { res.status(400).json({ error: e.message }); }
+};

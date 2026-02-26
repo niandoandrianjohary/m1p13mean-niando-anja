@@ -1,71 +1,36 @@
-import { Injectable, signal } from '@angular/core';
-import { DEMO_PRODUCTS } from '../data/demo-data';
+// services/product.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Product } from '../models/product.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ProductService {
-  // Utiliser un signal pour les produits
-  private products = signal<Product[]>(DEMO_PRODUCTS);
+  private apiUrl = `${environment.apiUrl}/products`;
 
-  // Exposer un signal en lecture seule
-  productsSig = this.products.asReadonly();
+  constructor(private http: HttpClient) {}
 
-  constructor() {}
+  getMyShopProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}/my-shop`);
+  }
 
-  // Retourner directement le tableau (pas un signal)
+  addProduct(product: Partial<Product>): Observable<Product> {
+    return this.http.post<Product>(this.apiUrl, product);
+  }
+
+  updateProduct(id: string, product: Partial<Product>): Observable<Product> {
+    return this.http.patch<Product>(`${this.apiUrl}/${id}`, product);
+  }
+
+  deleteProduct(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
   getAllProducts(): Product[] {
-    return this.products();
-  }
-
-  getProductsByShop(shopId: string): Product[] {
-    return this.products().filter(p => p.shopId === shopId);
-  }
-
-  getProductById(id: string): Product | undefined {
-    return this.products().find(p => p.id === id);
-  }
-
-  searchProducts(query: string, category?: string): Product[] {
-    let results = this.products();
-
-    if (query) {
-      const q = query.toLowerCase();
-      results = results.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.some(c => c.toLowerCase().includes(q))
-      );
-    }
-
-    if (category) {
-      results = results.filter(p =>
-        p.category.includes(category)
-      );
-    }
-
-    return results;
-  }
-
-  addProduct(productData: Omit<Product, 'id'>): void {
-    const newProduct: Product = {
-      ...productData,
-      id: 'p' + (this.products().length + 1)
-    };
-
-    this.products.update(products => [...products, newProduct]);
-  }
-
-  updateProduct(id: string, updates: Partial<Product>): void {
-    this.products.update(products =>
-      products.map(p => p.id === id ? { ...p, ...updates } : p)
-    );
-  }
-
-  deleteProduct(id: string): void {
-    this.products.update(products =>
-      products.filter(p => p.id !== id)
-    );
-  }
+    const productsObservable = this.http.get<Product[]>(this.apiUrl);
+    let products: Product[] = [];
+    productsObservable.subscribe(response => products = response);
+    return products;
+  }  
 }

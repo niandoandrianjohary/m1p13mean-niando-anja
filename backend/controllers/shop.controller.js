@@ -194,3 +194,14 @@ exports.approveShop = async (req, res) => {
         res.status(500).json({ message: "Erreur lors de l'approbation", error: error.message });
     }
 };
+
+// Récupérer le shop de l'utilisateur connecté
+exports.getConnectedShop = async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ ownerId: req.auth.userId });
+        if (!shop) return res.status(404).json({ message: "Vous n'avez pas encore de boutique." });
+        res.status(200).json(shop);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};

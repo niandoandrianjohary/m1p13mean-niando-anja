@@ -15,6 +15,8 @@ router.get('/active', auth, role(['admin']), shopCtrl.getActiveShops);
 
 router.get('/owner', auth, shopCtrl.getShopByOwnerId);
 
+router.get('/connected-shop', auth, shopCtrl.getConnectedShop);
+
 // 2. LIRE une boutique spécifique par ID (Public)
 router.get('/:id', shopCtrl.getShopById);
 

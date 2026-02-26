@@ -18,6 +18,9 @@ router.get('/category/:category', productCtrl.getProductsByCategory);
 // Récupérer les produits d'une boutique précise
 router.get('/shop/:shopId', productCtrl.getProductsByShop);
 
+// Récupérer les produits de la boutique de l'utilisateur connecté
+router.get('/my-shop', auth, productCtrl.getProductsByConnectedShop);
+
 // Récupérer un produit par son ID
 router.get('/:id', productCtrl.getProductById);
 

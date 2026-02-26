@@ -127,3 +127,15 @@ exports.getUserOrders = async (req, res) => {
         res.status(500).json({ message: "Erreur récupération commandes" });
     }
 };
+
+exports.getShopOrders = async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ ownerId: req.auth.userId });
+        if (!shop) return res.status(404).json({ message: "Vous n'avez pas encore de boutique." });
+
+        const orders = await Order.find({ shopId: shop._id }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur récupération commandes" });
+    }
+};
