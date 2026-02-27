@@ -166,10 +166,12 @@ import autoTable from 'jspdf-autotable';
                       <tbody>
                         <tr
                           *ngFor="
-                            let product of shopProducts.slice(
-                              (currentPage - 1) * pageSize,
-                              currentPage * pageSize
-                            )
+                            let product of shopProducts
+                              ? shopProducts.slice(
+                                  (currentPage - 1) * pageSize,
+                                  currentPage * pageSize
+                                )
+                              : []
                           "
                           class="order-item"
                         >
@@ -191,11 +193,13 @@ import autoTable from 'jspdf-autotable';
                           <td>
                             <strong>{{ product.name }}</strong
                             ><br />
-                            <small class="text-muted"
-                              >{{
-                                product.description | slice: 0 : 50
-                              }}...</small
-                            >
+                            <small class="text-muted">
+                              {{
+                                product?.description
+                                  ? (product.description | slice: 0 : 50)
+                                  : ''
+                              }}...
+                            </small>
                           </td>
                           <td>
                             <span
@@ -267,7 +271,9 @@ import autoTable from 'jspdf-autotable';
                         <td>
                           <strong
                             >#{{
-                              (order.id || order.id).slice(-6).toUpperCase()
+                              order?._id
+                                ? order._id.slice(-6).toUpperCase()
+                                : '...'
                             }}</strong
                           >
                         </td>
@@ -626,7 +632,7 @@ import autoTable from 'jspdf-autotable';
                       class="d-flex justify-content-between align-items-start mb-3"
                     >
                       <div>
-                        <h5>Commande #{{ order.id.slice(-6) }}</h5>
+                        <h5>Commande #{{ order?._id ? order._id.slice(-6) : 'Chargement...' }}</h5>
                         <p class="text-muted mb-1">
                           <i class="fas fa-user me-1"></i>{{ order.buyerName }}
                         </p>
@@ -688,21 +694,21 @@ import autoTable from 'jspdf-autotable';
                       <div class="btn-group">
                         <button
                           class="btn btn-outline-secondary"
-                          (click)="updateOrderStatus(order.id, 'preparing')"
+                          (click)="updateOrderStatus(order._id, 'preparing')"
                           [disabled]="order.status !== 'pending'"
                         >
                           Préparer
                         </button>
                         <button
                           class="btn btn-outline-warning"
-                          (click)="updateOrderStatus(order.id, 'ready')"
+                          (click)="updateOrderStatus(order._id, 'ready')"
                           [disabled]="order.status !== 'preparing'"
                         >
                           Prêt
                         </button>
                         <button
                           class="btn btn-outline-success"
-                          (click)="updateOrderStatus(order.id, 'delivered')"
+                          (click)="updateOrderStatus(order._id, 'delivered')"
                           [disabled]="order.status !== 'ready'"
                         >
                           Livré
@@ -927,8 +933,16 @@ export class ShopDashboardComponent implements OnInit {
   }
 
   // Méthodes utilitaires
-  formatNumber(num: number): string {
-    return num.toLocaleString('fr-MG');
+  formatNumber(num: number | undefined | null): string {
+  if (num === undefined || num === null) {
+    return '0'; // Ou '...' selon votre préférence
+  }
+  return num.toLocaleString('fr-MG');
+}
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().padStart(4, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 
   getCurrentDate(): string {
@@ -1107,10 +1121,13 @@ export class ShopDashboardComponent implements OnInit {
     });
   }
 
+  
+
   getPaginatedOrders() {
+    const orders = this.filteredOrders() || []; // Force un tableau vide si undefined
     const startIndex = (this.ordersCurrentPage - 1) * this.ordersPageSize;
     const endIndex = startIndex + this.ordersPageSize;
-    return this.filteredOrders().slice(startIndex, endIndex);
+    return orders.slice(startIndex, endIndex);
   }
 
   totalOrdersPages(): number {
@@ -1131,11 +1148,11 @@ export class ShopDashboardComponent implements OnInit {
 
   viewOrderDetails(order: any) {
     alert(
-      `Détails de la commande #${order.id}\n\n` +
+      `Détails de la commande #${order._id}\n\n` +
         `Client: ${order.customer}\n` +
-        `Total: ${this.formatNumber(order.total)} Ar\n` +
+        `Total: ${this.formatNumber(order.totalPrice)} Ar\n` +
         `Statut: ${this.getStatusText(order.status)}\n` +
-        `Date: ${order.date}\n\n` +
+        `Date: ${this.formatDate(order.createdAt)}\n\n` +
         `Articles:\n${order.items
           .map(
             (item: any) =>
@@ -1151,7 +1168,7 @@ export class ShopDashboardComponent implements OnInit {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Facture #${order.id}</title>
+            <title>Facture #${order._id}</title>
             <style>
               body { font-family: Arial, sans-serif; padding: 20px; }
               h1 { color: #1a237e; }
@@ -1166,7 +1183,7 @@ export class ShopDashboardComponent implements OnInit {
           </head>
           <body>
             <div class="header">
-              <h1>Facture #${order.id}</h1>
+              <h1>Facture #${order._id}</h1>
               <p>${this.shopName}</p>
             </div>
             <div class="details">
@@ -1272,12 +1289,14 @@ export class ShopDashboardComponent implements OnInit {
 
     // 2. Préparation des données pour le tableau
     // On utilise allOrders (vos données API) au lieu de demoOrders
-    const tableData = this.allOrders.map((order) => [
-      order.id.slice(-6).toUpperCase(), // ID court
-      order.buyerName,
-      new Date(order.createdAt).toLocaleDateString('fr-MG'),
-      this.getStatusText(order.status),
-      `${this.formatNumber(order.totalPrice)} Ar`,
+    const tableData = (this.allOrders || []).map((order) => [
+      order?._id ? order._id.slice(-6).toUpperCase() : 'N/A',
+      order?.buyerName || 'Inconnu',
+      order?.createdAt
+        ? new Date(order.createdAt).toLocaleDateString('fr-MG')
+        : '',
+      this.getStatusText(order?.status),
+      `${this.formatNumber(order?.totalPrice || 0)} Ar`,
     ]);
 
     // 3. Génération du tableau

@@ -20,6 +20,9 @@ router.post('/signup', userCtrl.signup);
 
 // --- ROUTES PROTÉGÉES ---
 
+// Récupérer le profil de l'utilisateur connecté
+router.get('/profile', auth, userCtrl.getProfile);
+
 // Créer un utilisateur (seul un profil 'admin' peut le faire)
 router.post('/create-user', auth, role(['admin']), userCtrl.createUser);
 
@@ -27,3 +30,4 @@ router.post('/create-user', auth, role(['admin']), userCtrl.createUser);
 router.get('/', auth, role(['admin']), userCtrl.getAllUsers);
 
 module.exports = router;
+

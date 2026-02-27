@@ -13,7 +13,7 @@ router.get('/', auth, role(['buyer', 'shop', 'admin']), orderCtrl.getUserOrders)
 
 router.patch('/:orderId/status', auth, role(['shop', 'admin']), orderCtrl.updateOrderStatus);
 
-router.post('/with-user', auth, role(['buyer']), orderCtrl.createOrderWithUserId);
+router.post('/create', auth, role(['buyer']), orderCtrl.createOrderWithUserId);
 
 module.exports = router;
 

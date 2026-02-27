@@ -18,4 +18,8 @@ export class OrderService {
   updateOrderStatus(orderId: string, status: string): Observable<Order> {
     return this.http.patch<Order>(`${this.apiUrl}/${orderId}/status`, { status });
   }
+
+  createOrder(orderData: any): Observable<Order> {
+  return this.http.post<Order>(`${this.apiUrl}/create`, orderData);
+}
 }

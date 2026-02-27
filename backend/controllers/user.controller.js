@@ -25,6 +25,16 @@ exports.createUser = async (req, res) => {
     }
 };
 
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.auth.userId).select('-password');
+        if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};
+
 exports.signup = async (req, res) => {
     try {
         const { email, password, name, address, phone, role } = req.body;

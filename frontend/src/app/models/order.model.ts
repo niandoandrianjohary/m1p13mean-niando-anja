@@ -1,7 +1,7 @@
 
 
 export interface Order {
-  id: string;
+  _id: string;
   buyerId: string;
   buyerName: string;
   shopId: string;

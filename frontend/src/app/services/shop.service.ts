@@ -39,6 +39,6 @@ export class ShopService {
   }
 
   getConnectedShop(): Observable<Shop> {
-    return this.http.get<Shop>(`${this.apiUrl}/shops/connected-shop`);
+    return this.http.get<Shop>(`${this.apiUrl}/connected-shop`);
   }
 }

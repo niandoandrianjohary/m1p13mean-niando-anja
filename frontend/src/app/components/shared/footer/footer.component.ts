@@ -121,6 +121,8 @@ import { Component } from '@angular/core';
       font-family: var(--font-body);
       background: var(--dark-charcoal);
       color: white;
+      position: relative;
+    z-index: 1000;
     }
 
     .footer-main {

@@ -92,13 +92,16 @@ exports.updateOrderStatus = async (req, res) => {
 exports.createOrderWithUserId = async (req, res) => {
     try {
         const { paymentMethod, items } = req.body;
-        const totalCentimes = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        
+        // Calcul du total (Bonne pratique : faire le calcul côté serveur pour la sécurité)
+        const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
         const order = new Order({
-            buyerId: req.auth.userId,
-            shopName: items[0].shopName, // Dénormalisation pour Angular
-            items: items, // Utilisation du orderItemSchema
-            totalPrice: totalCentimes / 100,
+            buyerId: req.auth.userId, // ID provenant du middleware d'auth
+            shopId: items[0].shopId._id || items[0].shopId, // <--- LA CORRECTION ICI
+            shopName: items[0].shopName,
+            items: items,
+            totalPrice: total,
             paymentMethod: paymentMethod || 'cash',
             status: 'pending'
         });
@@ -107,7 +110,7 @@ exports.createOrderWithUserId = async (req, res) => {
         res.status(201).json(order);
 
     } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", error: error.message });
+        res.status(400).json({ message: "Erreur de validation", error: error.message });
     }
 };
 

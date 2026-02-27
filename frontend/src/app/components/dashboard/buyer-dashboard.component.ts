@@ -7,6 +7,7 @@ import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
+import { OrderService } from '../../services/order.service';
 
 @Component({
   selector: 'app-buyer-dashboard',
@@ -23,12 +24,21 @@ import { ProductService } from '../../services/product.service';
               <a class="nav-link text-white" routerLink="/buyer">
                 <i class="fas fa-home me-2"></i>Accueil
               </a>
-              <a class="nav-link text-white" (click)="showProducts = true; showCart = false">
+              <a
+                class="nav-link text-white"
+                (click)="showProducts = true; showCart = false"
+              >
                 <i class="fas fa-shopping-bag me-2"></i>Produits
               </a>
-              <a class="nav-link text-white" (click)="showCart = true; showProducts = false">
+              <a
+                class="nav-link text-white"
+                (click)="showCart = true; showProducts = false"
+              >
                 <i class="fas fa-shopping-cart me-2"></i>
-                Panier <span class="badge bg-primary">{{ cartService.itemCount() }}</span>
+                Panier
+                <span class="badge bg-primary">{{
+                  cartService.itemCount()
+                }}</span>
               </a>
               <a class="nav-link text-white" (click)="logout()">
                 <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
@@ -42,22 +52,32 @@ import { ProductService } from '../../services/product.service';
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Bienvenue, {{ userName }}</h2>
             <div class="cart-summary">
-              <span class="me-3">Total panier: {{ formatNumber(cartService.cartTotal()) }} Ar</span>
-              <button class="btn btn-primary" (click)="showCart = true; showProducts = false">
-                <i class="fas fa-shopping-cart"></i> Voir Panier ({{ cartService.itemCount() }})
+              <span class="me-3">
+                Total panier: {{ formatNumber(cartService.cartTotal()) }} Ar
+              </span>
+              <button
+                class="btn btn-primary"
+                (click)="showCart = true; showProducts = false"
+              >
+                <i class="fas fa-shopping-cart"></i> Voir Panier ({{
+                  cartService.itemCount()
+                }})
               </button>
             </div>
           </div>
 
-          <!-- Section Produits -->
           <div *ngIf="showProducts">
-            <!-- Barre de recherche -->
             <div class="card mb-4">
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6">
-                    <input type="text" class="form-control" placeholder="Rechercher produit..."
-                           [(ngModel)]="searchQuery" (keyup.enter)="search()">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Rechercher produit..."
+                      [(ngModel)]="searchQuery"
+                      (keyup.enter)="search()"
+                    />
                   </div>
                   <div class="col-md-3">
                     <select class="form-select" [(ngModel)]="selectedCategory">
@@ -76,72 +96,111 @@ import { ProductService } from '../../services/product.service';
               </div>
             </div>
 
-            <!-- Liste des produits -->
             <div class="row">
-              <div class="col-md-4 mb-4" *ngFor="let product of getPaginatedProducts()">
+              <div
+                class="col-md-4 mb-4"
+                *ngFor="let product of getPaginatedProducts()"
+              >
                 <div class="card h-100">
-                  <img [src]="product.image" class="card-img-top" [alt]="product.name"
-                       style="height: 200px; object-fit: cover;">
+                  <img
+                    [src]="product.image"
+                    class="card-img-top"
+                    [alt]="product.name"
+                    style="height: 200px; object-fit: cover;"
+                  />
                   <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text text-muted">{{ product.shopName }}</p>
                     <p class="card-text small">{{ product.description }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                      <span class="h5 text-primary">{{ formatNumber(product.price) }} Ar</span>
-                      <span class="badge" [ngClass]="{
-                        'bg-success': product.stock > 20,
-                        'bg-warning': product.stock <= 20 && product.stock > 5,
-                        'bg-danger': product.stock <= 5
-                      }">
+                    <div
+                      class="d-flex justify-content-between align-items-center"
+                    >
+                      <span class="h5 text-primary"
+                        >{{ formatNumber(product.price) }} Ar</span
+                      >
+                      <span
+                        class="badge"
+                        [ngClass]="{
+                          'bg-success': product.stock > 20,
+                          'bg-warning':
+                            product.stock <= 20 && product.stock > 5,
+                          'bg-danger': product.stock <= 5,
+                        }"
+                      >
                         Stock: {{ product.stock }}
                       </span>
                     </div>
                   </div>
                   <div class="card-footer">
-                    <button class="btn btn-primary w-100" (click)="addToCart(product)"
-                            [disabled]="product.stock === 0">
+                    <button
+                      class="btn btn-primary w-100"
+                      (click)="addToCart(product)"
+                      [disabled]="product.stock === 0"
+                    >
                       <i class="fas fa-cart-plus me-2"></i>
-                      {{ product.stock === 0 ? 'Rupture' : 'Ajouter au panier' }}
+                      {{
+                        product.stock === 0 ? 'Rupture' : 'Ajouter au panier'
+                      }}
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="filteredProducts().length > pageSize">
+            <div
+              class="d-flex justify-content-between align-items-center mt-4"
+              *ngIf="filteredProducts().length > pageSize"
+            >
               <div>
-                Page {{ currentPage }} sur {{ totalPages() }}
-                ({{ filteredProducts().length }} produits)
+                Page {{ currentPage }} sur {{ totalPages() }} ({{
+                  filteredProducts().length
+                }}
+                produits)
               </div>
               <div>
-                <button class="btn btn-outline-primary me-2"
-                        (click)="previousPage()" [disabled]="currentPage === 1">
+                <button
+                  class="btn btn-outline-primary me-2"
+                  (click)="previousPage()"
+                  [disabled]="currentPage === 1"
+                >
                   <i class="fas fa-chevron-left"></i> Précédent
                 </button>
-                <button class="btn btn-outline-primary"
-                        (click)="nextPage()" [disabled]="currentPage === totalPages()">
+                <button
+                  class="btn btn-outline-primary"
+                  (click)="nextPage()"
+                  [disabled]="currentPage === totalPages()"
+                >
                   Suivant <i class="fas fa-chevron-right"></i>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Section Panier -->
           <div *ngIf="showCart">
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
+              <div
+                class="card-header d-flex justify-content-between align-items-center"
+              >
                 <h5 class="mb-0">Mon Panier</h5>
-                <button class="btn btn-outline-primary" (click)="showProducts = true; showCart = false">
+                <button
+                  class="btn btn-outline-primary"
+                  (click)="showProducts = true; showCart = false"
+                >
                   <i class="fas fa-arrow-left me-2"></i>Retour aux produits
                 </button>
               </div>
               <div class="card-body">
-                <div *ngIf="cartService.cartItems().length === 0" class="text-center py-5">
+                <div
+                  *ngIf="cartService.cartItems().length === 0"
+                  class="text-center py-5"
+                >
                   <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
                   <h5>Votre panier est vide</h5>
                   <p>Ajoutez des produits pour commencer vos achats</p>
-                  <button class="btn btn-primary" (click)="showProducts = true; showCart = false">
+                  <button
+                    class="btn btn-primary"
+                    (click)="showProducts = true; showCart = false"
+                  >
                     <i class="fas fa-shopping-bag me-2"></i>Voir les produits
                   </button>
                 </div>
@@ -162,32 +221,56 @@ import { ProductService } from '../../services/product.service';
                         <tr *ngFor="let item of cartService.cartItems()">
                           <td>
                             <div class="d-flex align-items-center">
-                              <img [src]="item.image" [alt]="item.name"
-                                   style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                              <img
+                                [src]="item.image"
+                                [alt]="item.name"
+                                style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;"
+                              />
                               <div>
-                                <strong>{{ item.name }}</strong><br>
-                                <small class="text-muted">{{ item.shopName }}</small>
+                                <strong>{{ item.name }}</strong
+                                ><br />
+                                <small class="text-muted">{{
+                                  item.shopName
+                                }}</small>
                               </div>
                             </div>
                           </td>
                           <td>{{ formatNumber(item.price) }} Ar</td>
                           <td>
                             <div class="d-flex align-items-center">
-                              <button class="btn btn-sm btn-outline-secondary"
-                                      (click)="updateQuantity(item.productId, item.quantity - 1)">
+                              <button
+                                class="btn btn-sm btn-outline-secondary"
+                                (click)="
+                                  updateQuantity(
+                                    item.productId,
+                                    item.quantity - 1
+                                  )
+                                "
+                              >
                                 <i class="fas fa-minus"></i>
                               </button>
                               <span class="mx-2">{{ item.quantity }}</span>
-                              <button class="btn btn-sm btn-outline-secondary"
-                                      (click)="updateQuantity(item.productId, item.quantity + 1)">
+                              <button
+                                class="btn btn-sm btn-outline-secondary"
+                                (click)="
+                                  updateQuantity(
+                                    item.productId,
+                                    item.quantity + 1
+                                  )
+                                "
+                              >
                                 <i class="fas fa-plus"></i>
                               </button>
                             </div>
                           </td>
-                          <td>{{ formatNumber(item.price * item.quantity) }} Ar</td>
                           <td>
-                            <button class="btn btn-sm btn-danger"
-                                    (click)="removeFromCart(item.productId)">
+                            {{ formatNumber(item.price * item.quantity) }} Ar
+                          </td>
+                          <td>
+                            <button
+                              class="btn btn-sm btn-danger"
+                              (click)="removeFromCart(item.productId)"
+                            >
                               <i class="fas fa-trash"></i>
                             </button>
                           </td>
@@ -203,28 +286,41 @@ import { ProductService } from '../../services/product.service';
                           <h5>Résumé de la commande</h5>
                           <div class="d-flex justify-content-between mb-2">
                             <span>Sous-total:</span>
-                            <strong>{{ formatNumber(cartService.cartTotal()) }} Ar</strong>
+                            <strong
+                              >{{
+                                formatNumber(cartService.cartTotal())
+                              }}
+                              Ar</strong
+                            >
                           </div>
                           <div class="d-flex justify-content-between mb-2">
                             <span>Livraison:</span>
                             <strong>Gratuite</strong>
                           </div>
-                          <hr>
+                          <hr />
                           <div class="d-flex justify-content-between">
                             <span class="h5">Total:</span>
-                            <span class="h4 text-primary">{{ formatNumber(cartService.cartTotal()) }} Ar</span>
+                            <span class="h4 text-primary"
+                              >{{
+                                formatNumber(cartService.cartTotal())
+                              }}
+                              Ar</span
+                            >
                           </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-center">
-                          <button class="btn btn-success btn-lg w-100" (click)="checkout()">
-                            <i class="fas fa-credit-card me-2"></i>Payer maintenant
+                          <button
+                            class="btn btn-success btn-lg w-100"
+                            (click)="checkout()"
+                          >
+                            <i class="fas fa-credit-card me-2"></i>Payer
+                            maintenant
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Paiement mobile simulé -->
                   <div class="card mt-4" *ngIf="showPayment">
                     <div class="card-header">
                       <h5 class="mb-0">Paiement Mobile</h5>
@@ -233,25 +329,40 @@ import { ProductService } from '../../services/product.service';
                       <div class="mb-3">
                         <label class="form-label">Méthode de paiement</label>
                         <div class="d-flex gap-2">
-                          <button class="btn btn-outline-primary"
-                                  [class.active]="paymentMethod === 'mvola'"
-                                  (click)="paymentMethod = 'mvola'">
-                            <img src="https://via.placeholder.com/20/0066b3/ffffff?text=M"
-                                 class="me-2" style="width: 20px;">
+                          <button
+                            class="btn btn-outline-primary"
+                            [class.active]="paymentMethod === 'mvola'"
+                            (click)="paymentMethod = 'mvola'"
+                          >
+                            <img
+                              src="https://via.placeholder.com/20/0066b3/ffffff?text=M"
+                              class="me-2"
+                              style="width: 20px;"
+                            />
                             Mvola
                           </button>
-                          <button class="btn btn-outline-danger"
-                                  [class.active]="paymentMethod === 'airtel'"
-                                  (click)="paymentMethod = 'airtel'">
-                            <img src="https://via.placeholder.com/20/ed1c24/ffffff?text=A"
-                                 class="me-2" style="width: 20px;">
+                          <button
+                            class="btn btn-outline-danger"
+                            [class.active]="paymentMethod === 'airtel'"
+                            (click)="paymentMethod = 'airtel'"
+                          >
+                            <img
+                              src="https://via.placeholder.com/20/ed1c24/ffffff?text=A"
+                              class="me-2"
+                              style="width: 20px;"
+                            />
                             Airtel Money
                           </button>
-                          <button class="btn btn-outline-warning"
-                                  [class.active]="paymentMethod === 'orange'"
-                                  (click)="paymentMethod = 'orange'">
-                            <img src="https://via.placeholder.com/20/ff7900/ffffff?text=O"
-                                 class="me-2" style="width: 20px;">
+                          <button
+                            class="btn btn-outline-warning"
+                            [class.active]="paymentMethod === 'orange'"
+                            (click)="paymentMethod = 'orange'"
+                          >
+                            <img
+                              src="https://via.placeholder.com/20/ff7900/ffffff?text=O"
+                              class="me-2"
+                              style="width: 20px;"
+                            />
                             Orange Money
                           </button>
                         </div>
@@ -259,30 +370,43 @@ import { ProductService } from '../../services/product.service';
 
                       <div class="mb-3">
                         <label class="form-label">Numéro de téléphone</label>
-                        <input type="tel" class="form-control"
-                               [(ngModel)]="phoneNumber"
-                               placeholder="034 XX XX XX">
+                        <input
+                          type="tel"
+                          class="form-control"
+                          [(ngModel)]="phoneNumber"
+                          placeholder="034 XX XX XX"
+                        />
                       </div>
 
                       <div class="mb-3" *ngIf="paymentMethod === 'mvola'">
                         <label class="form-label">Code PIN (4 chiffres)</label>
-                        <input type="password" class="form-control"
-                               [(ngModel)]="pinCode"
-                               maxlength="4"
-                               placeholder="0000">
+                        <input
+                          type="password"
+                          class="form-control"
+                          [(ngModel)]="pinCode"
+                          maxlength="4"
+                          placeholder="0000"
+                        />
                       </div>
 
                       <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        Ceci est une simulation de paiement. Aucun vrai argent ne sera débité.
+                        Ceci est une simulation de paiement. Aucun vrai argent
+                        ne sera débité.
                       </div>
 
                       <div class="d-flex gap-2">
-                        <button class="btn btn-primary" (click)="processPayment()">
+                        <button
+                          class="btn btn-primary"
+                          (click)="processPayment()"
+                        >
                           <i class="fas fa-mobile-alt me-2"></i>
                           Simuler le paiement avec {{ getPaymentMethodName() }}
                         </button>
-                        <button class="btn btn-outline-secondary" (click)="showPayment = false">
+                        <button
+                          class="btn btn-outline-secondary"
+                          (click)="showPayment = false"
+                        >
                           Annuler
                         </button>
                       </div>
@@ -296,33 +420,35 @@ import { ProductService } from '../../services/product.service';
       </div>
     </div>
   `,
-  styles: [`
-    .nav-link {
-      cursor: pointer;
-      &:hover {
-        background: rgba(255,255,255,0.1);
+  styles: [
+    `
+      .nav-link {
+        cursor: pointer;
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
       }
-    }
 
-    .btn.active {
-      background-color: var(--primary-color);
-      color: white;
-    }
-
-    .card {
-      transition: transform 0.3s;
-      &:hover {
-        transform: translateY(-2px);
+      .btn.active {
+        background-color: var(--primary-color);
+        color: white;
       }
-    }
 
-    .cart-summary {
-      background: #f8f9fa;
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: 1px solid #dee2e6;
-    }
-  `]
+      .card {
+        transition: transform 0.3s;
+        &:hover {
+          transform: translateY(-2px);
+        }
+      }
+
+      .cart-summary {
+        background: #f8f9fa;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+      }
+    `,
+  ],
 })
 export class BuyerDashboardComponent implements OnInit {
   userName = '';
@@ -333,7 +459,7 @@ export class BuyerDashboardComponent implements OnInit {
   showProducts = true;
   showCart = false;
   showPayment = false;
-  paymentMethod = 'mvola';
+  paymentMethod: 'mvola' | 'airtel' | 'orange' | 'cash' = 'mvola';
   phoneNumber = '034 12 34 56';
   pinCode = '1234';
 
@@ -343,7 +469,8 @@ export class BuyerDashboardComponent implements OnInit {
   constructor(
     private productService: ProductService,
     public cartService: CartService,
-    private authService: AuthService
+    private authService: AuthService,
+    private orderService: OrderService, // Injecté ici
   ) {
     const user = this.authService.currentUserSig();
     this.userName = user?.name || 'Acheteur';
@@ -354,37 +481,44 @@ export class BuyerDashboardComponent implements OnInit {
   }
 
   loadProducts() {
-    this.allProducts = this.productService.getAllProducts();
-    this.filteredProducts.set(this.allProducts);
+    this.productService.getAllProducts().subscribe({
+      next: (products) => {
+        this.allProducts = products;
+        this.filteredProducts.set(products);
+      },
+      error: (err) =>
+        console.error('Erreur lors du chargement des produits', err),
+    });
   }
 
+  // --- Logique de recherche et pagination ---
   search() {
     let results = [...this.allProducts];
-
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      results = results.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
-        p.category.some(c => c.toLowerCase().includes(query)) ||
-        p.shopName.toLowerCase().includes(query)
+      results = results.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          p.description.toLowerCase().includes(query) ||
+          p.category.some((c) => c.toLowerCase().includes(query)) ||
+          p.shopName.toLowerCase().includes(query),
       );
     }
-
     if (this.selectedCategory) {
-      results = results.filter(p =>
-        p.category.includes(this.selectedCategory)
+      results = results.filter((p) =>
+        p.category.includes(this.selectedCategory),
       );
     }
-
     this.filteredProducts.set(results);
     this.currentPage = 1;
   }
 
   getPaginatedProducts(): Product[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    return this.filteredProducts().slice(startIndex, endIndex);
+    return this.filteredProducts().slice(
+      startIndex,
+      startIndex + this.pageSize,
+    );
   }
 
   totalPages(): number {
@@ -392,17 +526,13 @@ export class BuyerDashboardComponent implements OnInit {
   }
 
   previousPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
+    if (this.currentPage > 1) this.currentPage--;
   }
-
   nextPage() {
-    if (this.currentPage < this.totalPages()) {
-      this.currentPage++;
-    }
+    if (this.currentPage < this.totalPages()) this.currentPage++;
   }
 
+  // --- Gestion du Panier ---
   addToCart(product: Product) {
     const cartItem: CartItem = {
       productId: product.id,
@@ -411,11 +541,9 @@ export class BuyerDashboardComponent implements OnInit {
       image: product.image,
       quantity: 1,
       shopId: product.shopId,
-      shopName: product.shopName
+      shopName: product.shopName,
     };
-
     this.cartService.addToCart(cartItem);
-    alert(`${product.name} ajouté au panier!`);
   }
 
   updateQuantity(productId: string, quantity: number) {
@@ -436,40 +564,68 @@ export class BuyerDashboardComponent implements OnInit {
     this.showPayment = true;
   }
 
-  getPaymentMethodName(): string {
-    switch(this.paymentMethod) {
-      case 'mvola': return 'Mvola';
-      case 'airtel': return 'Airtel Money';
-      case 'orange': return 'Orange Money';
-      default: return '';
+  // --- Intégration API Commande ---
+  processPayment() {
+    const user = this.authService.currentUserSig();
+    const cartItems = this.cartService.cartItems();
+
+    if (!user) {
+      alert('Erreur: Utilisateur non connecté');
+      return;
     }
+
+    if (
+      !this.phoneNumber ||
+      (this.paymentMethod === 'mvola' && this.pinCode.length !== 4)
+    ) {
+      alert('Veuillez vérifier vos informations de paiement');
+      return;
+    }
+
+    // Construction du payload pour l'API
+    // Note: On prend le shopId du premier article (API limitée à 1 shop par commande)
+    const orderPayload = {
+      buyerId: user.id,
+      buyerName: user.name,
+      shopId: cartItems[0].shopId,
+      shopName: cartItems[0].shopName,
+      items: cartItems,
+      totalPrice: this.cartService.cartTotal(),
+      paymentMethod: this.paymentMethod,
+      paymentStatus: 'paid', // Simulé comme payé après validation mobile
+    };
+
+    
+
+    // Appel au service
+    this.orderService.createOrder(orderPayload).subscribe({
+      next: (res) => {
+        alert(`Succès ! Commande enregistrée avec l'ID : ${res._id || 'N/A'}`);
+        this.cartService.clearCart();
+        this.resetNavigation();
+      },
+      error: (err) => {
+        console.error('Erreur lors de la création de la commande', err);
+        alert('Échec de la commande. Veuillez réessayer.');
+        console.log('Payload envoyé à l\'API : ', orderPayload);
+      },
+    });
   }
 
-  processPayment() {
-    if (!this.phoneNumber) {
-      alert('Veuillez entrer un numéro de téléphone');
-      return;
-    }
-
-    if (this.paymentMethod === 'mvola' && (!this.pinCode || this.pinCode.length !== 4)) {
-      alert('Veuillez entrer un code PIN valide (4 chiffres)');
-      return;
-    }
-
-    // Simulation de paiement
-    const total = this.cartService.cartTotal();
-    const formattedTotal = this.formatNumber(total);
-    alert(`Paiement de ${formattedTotal} Ar effectué avec succès via ${this.getPaymentMethodName()}!`);
-
-    // Vider le panier
-    this.cartService.clearCart();
-
-    // Réinitialiser
+  private resetNavigation() {
     this.showPayment = false;
     this.showCart = false;
     this.showProducts = true;
+  }
 
-    alert('Commande confirmée! Vous recevrez une notification de livraison.');
+  getPaymentMethodName(): string {
+    const names = {
+      mvola: 'Mvola',
+      airtel: 'Airtel Money',
+      orange: 'Orange Money',
+      cash: 'Espèces',
+    };
+    return names[this.paymentMethod] || '';
   }
 
   formatNumber(num: number): string {

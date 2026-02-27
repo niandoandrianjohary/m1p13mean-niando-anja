@@ -27,10 +27,7 @@ export class ProductService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
-  getAllProducts(): Product[] {
-    const productsObservable = this.http.get<Product[]>(this.apiUrl);
-    let products: Product[] = [];
-    productsObservable.subscribe(response => products = response);
-    return products;
-  }  
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(this.apiUrl);
+  }
 }
