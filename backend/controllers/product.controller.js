@@ -51,17 +51,21 @@ exports.getProductsByCategory = async (req, res) => {
 
 exports.getProductsByConnectedShop = async (req, res) => {
     try {
-        // 1. On s'assure que l'ID est bien présent (sécurité)
-        const shopId = req.auth.userId;
-        
-        // 2. On récupère les produits
-        const products = await Product.find({ shopId });
+        const userId = req.auth.userId;
 
-        // 3. Code 200 explicite (Succès)
+        // 1. Trouver le shop qui appartient à cet utilisateur
+        const shop = await Shop.findOne({ ownerId: userId });
+        
+        if (!shop) {
+            return res.status(404).json({ message: "Boutique non trouvée pour cet utilisateur" });
+        }
+
+        // 2. Récupérer les produits avec l'ID du shop trouvé
+        const products = await Product.find({ shopId: shop._id });
+
         res.status(200).json(products);
     } catch (error) {
-        // 4. Code 500 pour une erreur serveur
-        res.status(500).json({ message: "Erreur lors de la récupération des produits", error: error.message });
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
     }
 };
 
@@ -81,11 +85,9 @@ exports.updateProduct = async (req, res) => {
     } catch (e) { res.status(400).json({ error: e.message }); }
 };
 
-/*************  ✨ Windsurf Command ⭐  *************/
 exports.getCategories = async (req, res) => {
     try {
         const categories = await Product.distinct('category');
         res.status(200).json(categories);
     } catch (e) { res.status(400).json({ error: e.message }); }
 };
-/*******  23fe517a-3bd3-4f8f-8d11-633613631972  *******/
