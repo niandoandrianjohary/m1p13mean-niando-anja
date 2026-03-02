@@ -51,16 +51,17 @@ exports.getProductsByCategory = async (req, res) => {
 
 exports.getProductsByConnectedShop = async (req, res) => {
     try {
-        const userId = req.auth.userId;
+        const userId = req.auth.userId; // ID de l'utilisateur extrait du token
 
-        // 1. Trouver le shop qui appartient à cet utilisateur
+        // 1. Trouver la boutique dont le propriétaire est cet utilisateur
+        // On suppose que ton modèle Shop a un champ 'ownerId' ou 'userId'
         const shop = await Shop.findOne({ ownerId: userId });
-        
+
         if (!shop) {
             return res.status(404).json({ message: "Boutique non trouvée pour cet utilisateur" });
         }
 
-        // 2. Récupérer les produits avec l'ID du shop trouvé
+        // 2. Récupérer les produits en utilisant l'ID de la boutique trouvée
         const products = await Product.find({ shopId: shop._id });
 
         res.status(200).json(products);
