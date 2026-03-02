@@ -7,6 +7,7 @@ import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -54,7 +55,7 @@ import { ProductService } from '../../services/product.service';
           </div>
 
           <div class="hero-actions">
-            <button class="btn-luxe btn-primary" routerLink="/buyer">
+            <button class="btn-luxe btn-primary" routerLink="/buy">
               <span class="btn-content">
                 <i class="fas fa-gem"></i>
                 <span>EXPLORER LES BOUTIQUES</span>
@@ -66,138 +67,6 @@ import { ProductService } from '../../services/product.service';
                 <span>ESPACE PRIVILÈGE</span>
               </span>
             </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Carte Interactive Luxe -->
-      <section class="map-section-luxe">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">PLAN ARCHITECTURAL</h2>
-            <p class="section-subtitle">
-              Découvrez l'agencement exclusif de nos boutiques
-            </p>
-          </div>
-
-          <div class="map-luxe-container">
-            <div class="map-visual">
-              <div class="map-level">
-                <h4 class="level-title">
-                  LEVEL <span class="accent">ONE</span>
-                </h4>
-                <div class="level-shops">
-                  <div
-                    class="shop-pin luxury"
-                    (click)="selectShop('Zara')"
-                    [class.active]="selectedShop === 'Zara'"
-                  >
-                    <div class="pin-marker"></div>
-                    <div class="pin-label">ZARA</div>
-                    <div class="pin-category">Haute Couture</div>
-                  </div>
-                  <div
-                    class="shop-pin fashion"
-                    (click)="selectShop('LC Waikiki')"
-                    [class.active]="selectedShop === 'LC Waikiki'"
-                  >
-                    <div class="pin-marker"></div>
-                    <div class="pin-label">LC WAIKIKI</div>
-                    <div class="pin-category">Prêt-à-porter</div>
-                  </div>
-                  <div
-                    class="shop-pin tech"
-                    (click)="selectShop('Star')"
-                    [class.active]="selectedShop === 'Star'"
-                  >
-                    <div class="pin-marker"></div>
-                    <div class="pin-label">STAR</div>
-                    <div class="pin-category">Technologie</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="map-divider"></div>
-
-              <div class="map-level">
-                <h4 class="level-title">
-                  LEVEL <span class="accent">TWO</span>
-                </h4>
-                <div class="level-shops">
-                  <div
-                    class="shop-pin dining"
-                    (click)="selectShop('Jumbo Score')"
-                    [class.active]="selectedShop === 'Jumbo Score'"
-                  >
-                    <div class="pin-marker"></div>
-                    <div class="pin-label">JUMBO SCORE</div>
-                    <div class="pin-category">Restaurant Étoilé</div>
-                  </div>
-                  <div
-                    class="shop-pin telecom"
-                    (click)="selectShop('Orange')"
-                    [class.active]="selectedShop === 'Orange'"
-                  >
-                    <div class="pin-marker"></div>
-                    <div class="pin-label">ORANGE</div>
-                    <div class="pin-category">Connectivité</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="map-sidebar">
-              <div class="sidebar-header">
-                <h3>EXPLORER</h3>
-                <div class="sidebar-line"></div>
-              </div>
-
-              <div class="legend-luxe">
-                <div class="legend-item">
-                  <div class="legend-color luxury"></div>
-                  <span>LUXURY BOUTIQUES</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color fashion"></div>
-                  <span>FASHION HOUSES</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color tech"></div>
-                  <span>TECHNOLOGY</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color dining"></div>
-                  <span>FINE DINING</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color telecom"></div>
-                  <span>CONNECTIVITY</span>
-                </div>
-              </div>
-
-              <div class="selected-shop-luxe" *ngIf="selectedShop">
-                <div class="selected-header">
-                  <i class="fas fa-store-alt"></i>
-                  <h4>BOUTIQUE SÉLECTIONNÉE</h4>
-                </div>
-                <div class="selected-content">
-                  <h3 class="shop-name">{{ selectedShop }}</h3>
-                  <p class="shop-category">
-                    {{ getShopCategory(selectedShop) }}
-                  </p>
-                  <p class="shop-description">
-                    Boutique exclusive proposant les dernières collections dans
-                    un cadre raffiné et personnalisé.
-                  </p>
-                  <button
-                    class="btn-luxe btn-view"
-                    (click)="viewShopProducts(selectedShop)"
-                  >
-                    VISITER LA BOUTIQUE
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -1216,6 +1085,7 @@ export class HomeComponent implements OnInit {
     private productService: ProductService,
     private authService: AuthService,
     private cartService: CartService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -1233,10 +1103,13 @@ export class HomeComponent implements OnInit {
   }
 
   search() {
-    if (this.searchQuery.trim()) {
-      alert(`Recherche pour: ${this.searchQuery}`);
-    }
+  if (this.searchQuery.trim()) {
+    // Redirige vers /buy?search=votre_recherche
+    this.router.navigate(['/buy'], { 
+      queryParams: { search: this.searchQuery } 
+    });
   }
+}
 
   selectShop(shopName: string) {
     this.selectedShop = shopName;

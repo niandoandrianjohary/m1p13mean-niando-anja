@@ -25,10 +25,10 @@ import { Router } from '@angular/router';
             </span>
           </div>
 
-          <div class="header-utils">
+          <!-- <div class="header-utils">
             <a href="#" class="utils-link">Personal Shopper</a>
             <a href="#" class="utils-link">Événements</a>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -49,14 +49,14 @@ import { Router } from '@angular/router';
             <a *ngIf="isLoggedIn()" [routerLink]="getDashboardLink()" class="nav-link" routerLinkActive="active">
               DASHBOARD
             </a>
-            <a href="#" class="nav-link">BOUTIQUES</a>
-            <a href="#" class="nav-link">CONTACT</a>
+            <a routerLink="/buy" class="nav-link">BOUTIQUES</a>
+            <!-- <a href="#" class="nav-link">CONTACT</a> -->
           </div>
 
           <div class="header-actions">
-            <button class="action-btn search-btn">
+            <!-- <button class="action-btn search-btn">
               <i class="fas fa-search"></i>
-            </button>
+            </button> -->
 
             <div class="cart-container" *ngIf="isBuyer()">
               <button class="action-btn cart-btn" routerLink="/buyer/cart">

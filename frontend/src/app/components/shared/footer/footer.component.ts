@@ -42,20 +42,14 @@ import { Component } from '@angular/core';
             <div class="footer-section">
               <h4 class="section-title">EXPLORER</h4>
               <ul class="footer-links">
-                <li><a href="#">Boutiques </a></li>
-                <li><a href="#">Événements </a></li>
-                <li><a href="#">Services </a></li>
+                <li><a href="/buy">Boutiques </a></li>
               </ul>
             </div>
 
             <div class="footer-section">
               <h4 class="section-title">SERVICES</h4>
               <ul class="footer-links">
-                <li><a href="#">Personal Shopper</a></li>
-                <li><a href="#">Conciergerie 24/7</a></li>
-                <li><a href="#">Parking</a></li>
-                <li><a href="#">Réservations </a></li>
-                <li><a href="#">Services de Livraison</a></li>
+                <li><a href="/login">Espace privilégié</a></li>
               </ul>
             </div>
 

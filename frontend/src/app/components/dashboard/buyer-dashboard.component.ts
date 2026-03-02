@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CartItem } from '../../models/cart.model';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
@@ -452,6 +453,9 @@ import { OrderService } from '../../services/order.service';
   ],
 })
 export class BuyerDashboardComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   userName = '';
   searchQuery = '';
   selectedCategory = '';
@@ -482,6 +486,14 @@ export class BuyerDashboardComponent implements OnInit {
   ngOnInit() {
     this.loadProducts();
     this.loadCategories();
+
+    this.route.queryParams.subscribe(params => {
+      if (params['search']) {
+        this.searchQuery = params['search'];
+        this.selectedCategory = ''; // Réinitialise la catégorie pour une recherche globale
+        this.search(); // Déclenche la logique de filtrage
+      }
+    });
   }
 
   loadCategories(): void {
