@@ -484,19 +484,19 @@ export class BuyerDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-  this.loadCategories();
-  
-  // 1. On récupère d'abord le paramètre de l'URL
-  this.route.queryParams.subscribe(params => {
-    if (params['search']) {
-      this.searchQuery = params['search'];
-      this.selectedCategory = '';
-    }
-    // 2. On lance le chargement des produits 
-    // (qu'il y ait une recherche ou non)
-    this.loadProducts();
-  });
-}
+    this.loadCategories();
+
+    // 1. On récupère d'abord le paramètre de l'URL
+    this.route.queryParams.subscribe((params) => {
+      if (params['search']) {
+        this.searchQuery = params['search'];
+        this.selectedCategory = '';
+      }
+      // 2. On lance le chargement des produits
+      // (qu'il y ait une recherche ou non)
+      this.loadProducts();
+    });
+  }
 
   loadCategories(): void {
     this.productService.getAllCategories().subscribe({
@@ -511,11 +511,12 @@ export class BuyerDashboardComponent implements OnInit {
   loadProducts() {
     this.productService.getAllProducts().subscribe({
       next: (products) => {
-        this.allProducts = products;
-        this.filteredProducts.set(products);
+        this.allProducts = products; // Les produits arrivent de la base de données
+
+        // MAINTENANT que allProducts n'est plus vide, on peut filtrer !
+        this.search();
       },
-      error: (err) =>
-        console.error('Erreur lors du chargement des produits', err),
+      error: (err) => console.error('Erreur produits:', err),
     });
   }
 

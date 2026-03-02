@@ -92,16 +92,60 @@ exports.updateOrderStatus = async (req, res) => {
 exports.createOrderWithUserId = async (req, res) => {
     try {
         const { paymentMethod, items } = req.body;
-        
-        // Calcul du total (Bonne pratique : faire le calcul côté serveur pour la sécurité)
-        const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        const buyerId = req.auth.userId;
 
+        // 1. Récupérer l'acheteur (pour dénormaliser son nom)
+        const buyer = await User.findById(buyerId);
+        if (!buyer) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+        let totalCentimes = 0;
+        const orderItems = [];
+
+        // 2. Vérification des stocks et calcul du prix réel
+        // On boucle sur chaque produit envoyé par le front
+        for (const item of items) {
+            const product = await Product.findById(item.productId);
+            
+            if (!product) {
+                return res.status(404).json({ message: `Produit introuvable : ${item.name}` });
+            }
+
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ 
+                    message: `Stock insuffisant pour : ${product.name} (Disponible: ${product.stock})` 
+                });
+            }
+
+            // On prépare l'item avec les données du serveur (sécurité prix/image)
+            orderItems.push({
+                productId: product._id,
+                name: product.name,
+                price: product.price, 
+                quantity: item.quantity,
+                image: product.image
+            });
+
+            // Calcul en centimes pour éviter les erreurs de calcul JS (0.1 + 0.2 !== 0.3)
+            totalCentimes += (product.price * 100) * item.quantity;
+        }
+
+        // 3. Identification du Shop (on prend les infos du premier produit)
+        const firstProduct = await Product.findById(items[0].productId).populate('shopId');
+        if (!firstProduct) return res.status(400).json({ message: "Boutique introuvable" });
+
+        // 4. Mise à jour des stocks en parallèle (Décrémentation)
+        await Promise.all(items.map(item => 
+            Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } })
+        ));
+
+        // 5. Création de la commande finale
         const order = new Order({
-            buyerId: req.auth.userId, // ID provenant du middleware d'auth
-            shopId: items[0].shopId._id || items[0].shopId, // <--- LA CORRECTION ICI
+            buyerId: buyerId,
+            buyerName: buyer.name,
+            shopId: items[0].shopId._id || items[0].shopId,
             shopName: items[0].shopName,
-            items: items,
-            totalPrice: total,
+            items: orderItems,
+            totalPrice: totalCentimes / 100,
             paymentMethod: paymentMethod || 'cash',
             status: 'pending'
         });
@@ -110,7 +154,7 @@ exports.createOrderWithUserId = async (req, res) => {
         res.status(201).json(order);
 
     } catch (error) {
-        res.status(400).json({ message: "Erreur de validation", error: error.message });
+        res.status(500).json({ message: "Erreur lors de la création de la commande", error: error.message });
     }
 };
 
