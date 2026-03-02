@@ -79,7 +79,7 @@ import { Router } from '@angular/router';
               <h2 class="section-title">COLLECTION EXCLUSIVE</h2>
               <p class="section-subtitle">Pièces sélectionnées avec exigence</p>
             </div>
-            <button class="view-all" routerLink="/buyer">
+            <button class="view-all" routerLink="/buy">
               VOIR LA COLLECTION
               <i class="fas fa-arrow-right-long"></i>
             </button>
