@@ -9,6 +9,9 @@ const role = require('../middleware/role');
 // Récupérer tous les produits (Page d'accueil)
 router.get('/', productCtrl.getAllProducts);
 
+// Récupérer les catégories de produits
+router.get('/categories', productCtrl.getCategories);
+
 // Rechercher des produits (ex: /search?query=pain)
 router.get('/search', productCtrl.searchProducts);
 

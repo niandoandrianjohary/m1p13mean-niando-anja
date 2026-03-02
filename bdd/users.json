@@ -1,27 +1,11 @@
-[
-  {
-    "_id": {"$oid": "65cd10000000000000000001"},
-    "name": "Admin Central",
-    "email": "admin@mall.com",
-    "password": "password123",
-    "role": "admin",
-    "phone": "0340000001"
+{
+  "_id": {
+    "$oid": "65cd10000000000000000002"
   },
-  {
-    "_id": {"$oid": "65cd10000000000000000002"},
-    "name": "Gerant Boulangerie",
-    "email": "shop@boulangerie.com",
-    "password": "password123",
-    "role": "shop",
-    "phone": "0340000002"
-  },
-  {
-    "_id": {"$oid": "65cd10000000000000000003"},
-    "name": "Jean Acheteur",
-    "email": "jean@client.com",
-    "password": "password123",
-    "role": "buyer",
-    "phone": "0340000003",
-    "address": "Lot IV, Antananarivo"
-  }
-]
+  "name": "Gerant Boulangerie",
+  "email": "shop@boulangerie.com",
+  "password": "$2a$12$B1ZzqAS6jUJqGY0sK3ZRDeuJeDk30i5uEXUAv3G3L4Ic7sTmxQfJO",
+  "role": "shop",
+  "phone": "0340000002",
+  "createdAt": "2026-02-16T07:54:37.287+00:00"
+}

@@ -1,11 +1,16 @@
-[
-  {
-    "_id": {"$oid": "65cd20000000000000000001"},
-    "name": "La Baguette Dorée",
-    "ownerId": {"$oid": "65cd10000000000000000002"},
-    "category": "Alimentation",
-    "location": "Avenue 1, Box 12",
-    "description": "Boulangerie artisanale française",
-    "status": "active"
+{
+  "_id": {
+    "$oid": "65cd20000000000000000001"
+  },
+  "name": "La Baguette Dorée",
+  "ownerId": {
+    "$oid": "65cd10000000000000000002"
+  },
+  "category": "Alimentation",
+  "location": "Avenue 1, Box 120",
+  "description": "Boulangerie artisanale française",
+  "status": "active",
+  "updatedAt": {
+    "$date": "2026-03-02T08:48:07.459Z"
   }
-]
+}

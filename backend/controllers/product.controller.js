@@ -80,3 +80,12 @@ exports.updateProduct = async (req, res) => {
         res.status(200).json({ message: "Produit mis à jour avec succès", product });
     } catch (e) { res.status(400).json({ error: e.message }); }
 };
+
+/*************  ✨ Windsurf Command ⭐  *************/
+exports.getCategories = async (req, res) => {
+    try {
+        const categories = await Product.distinct('category');
+        res.status(200).json(categories);
+    } catch (e) { res.status(400).json({ error: e.message }); }
+};
+/*******  23fe517a-3bd3-4f8f-8d11-633613631972  *******/

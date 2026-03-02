@@ -81,10 +81,11 @@ import { OrderService } from '../../services/order.service';
                   </div>
                   <div class="col-md-3">
                     <select class="form-select" [(ngModel)]="selectedCategory">
-                      <option value="">Toutes catégories</option>
-                      <option value="fashion">Mode</option>
-                      <option value="electronics">Électronique</option>
-                      <option value="food">Alimentation</option>
+                      <option value="">Toutes les catégories</option>
+
+                      <option *ngFor="let cat of categories" [value]="cat">
+                        {{ cat | titlecase }}
+                      </option>
                     </select>
                   </div>
                   <div class="col-md-3">
@@ -466,6 +467,8 @@ export class BuyerDashboardComponent implements OnInit {
   allProducts: Product[] = [];
   filteredProducts = signal<Product[]>([]);
 
+  categories: string[] = []; // Tableau pour stocker les catégories dynamiques
+
   constructor(
     private productService: ProductService,
     public cartService: CartService,
@@ -478,6 +481,17 @@ export class BuyerDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadProducts();
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    this.productService.getAllCategories().subscribe({
+      next: (data) => {
+        this.categories = data;
+        console.log('Catégories chargées:', this.categories);
+      },
+      error: (err) => console.error('Erreur chargement catégories', err),
+    });
   }
 
   loadProducts() {
@@ -596,8 +610,6 @@ export class BuyerDashboardComponent implements OnInit {
       paymentStatus: 'paid', // Simulé comme payé après validation mobile
     };
 
-    
-
     // Appel au service
     this.orderService.createOrder(orderPayload).subscribe({
       next: (res) => {
@@ -608,7 +620,7 @@ export class BuyerDashboardComponent implements OnInit {
       error: (err) => {
         console.error('Erreur lors de la création de la commande', err);
         alert('Échec de la commande. Veuillez réessayer.');
-        console.log('Payload envoyé à l\'API : ', orderPayload);
+        console.log("Payload envoyé à l'API : ", orderPayload);
       },
     });
   }

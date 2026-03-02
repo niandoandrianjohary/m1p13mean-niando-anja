@@ -1,26 +1,18 @@
-[
-  {
-    "_id": {"$oid": "65cd30000000000000000001"},
-    "name": "Baguette Tradition",
-    "description": "Pain croustillant au levain",
-    "price": 1200,
-    "image": "https://img.com/baguette.jpg",
-    "category": ["Pain", "Petit déjeuner"],
-    "shopId": {"$oid": "65cd20000000000000000001"},
-    "shopName": "La Baguette Dorée",
-    "stock": 50,
-    "isActive": true
+{
+  "_id": {
+    "$oid": "65cd30000000000000000002"
   },
-  {
-    "_id": {"$oid": "65cd30000000000000000002"},
-    "name": "Croissant pur beurre",
-    "description": "Viennoiserie artisanale",
-    "price": 1500,
-    "image": "https://img.com/croissant.jpg",
-    "category": ["Viennoiserie"],
-    "shopId": {"$oid": "65cd20000000000000000001"},
-    "shopName": "La Baguette Dorée",
-    "stock": 30,
-    "isActive": true
-  }
-]
+  "name": "Croissant pur beurre",
+  "description": "Viennoiserie artisanale",
+  "price": 1500,
+  "image": "https://geraldsattler.fr/wp-content/uploads/2023/03/Croissant-pru-bur-creation-Gerald-Sattler-5.jpeg",
+  "category": [
+    "Viennoiserie"
+  ],
+  "shopId": {
+    "$oid": "65cd10000000000000000002"
+  },
+  "shopName": "La Baguette Dorée",
+  "stock": 30,
+  "isActive": true
+}

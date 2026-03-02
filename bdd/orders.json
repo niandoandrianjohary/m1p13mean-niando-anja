@@ -1,23 +1,31 @@
-[
-  {
-    "_id": {"$oid": "65cd40000000000000000001"},
-    "buyerId": {"$oid": "65cd10000000000000000003"},
-    "buyerName": "Jean Acheteur",
-    "shopId": {"$oid": "65cd20000000000000000001"},
-    "shopName": "La Baguette Dorée",
-    "items": [
-      {
-        "productId": {"$oid": "65cd30000000000000000001"},
-        "name": "Baguette Tradition",
-        "price": 1200,
-        "quantity": 2,
-        "image": "https://img.com/baguette.jpg"
-      }
-    ],
-    "status": "pending",
-    "totalPrice": 2400,
-    "paymentMethod": "mvola",
-    "paymentStatus": "pending",
-    "createdAt": {"$date": "2024-02-15T10:00:00Z"}
+{
+  "_id": {
+    "$oid": "65cd40000000000000000001"
+  },
+  "buyerId": {
+    "$oid": "65cd10000000000000000003"
+  },
+  "buyerName": "Jean Acheteur",
+  "shopId": {
+    "$oid": "65cd20000000000000000001"
+  },
+  "shopName": "La Baguette Dorée",
+  "items": [
+    {
+      "productId": {
+        "$oid": "65cd30000000000000000001"
+      },
+      "name": "Baguette Tradition",
+      "price": 1200,
+      "quantity": 2,
+      "image": "https://img.com/baguette.jpg"
+    }
+  ],
+  "status": "pending",
+  "totalPrice": 2400,
+  "paymentMethod": "mvola",
+  "paymentStatus": "pending",
+  "createdAt": {
+    "$date": "2024-02-15T10:00:00.000Z"
   }
-]
+}
