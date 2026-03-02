@@ -1,4 +1,5 @@
 const Product = require('../models/product.model');
+const Shop = require('../models/shop.model'); // Vérifiez le chemin vers votre modèle Shop
 
 exports.createProduct = async (req, res) => {
     try {
@@ -51,15 +52,16 @@ exports.getProductsByCategory = async (req, res) => {
 
 exports.getProductsByConnectedShop = async (req, res) => {
     try {
-        // 1. Trouver la boutique qui appartient à cet utilisateur (ownerId)
+        // 1. On cherche la boutique possédée par l'utilisateur connecté
+        // On utilise ownerId car c'est le champ dans votre ShopSchema
         const shop = await Shop.findOne({ ownerId: req.auth.userId });
 
-        // 2. Vérifier si l'utilisateur possède bien une boutique
+        // Si l'utilisateur n'a pas de boutique, on s'arrête là
         if (!shop) {
-            return res.status(404).json({ message: "Aucune boutique trouvée pour cet utilisateur." });
+            return res.status(404).json({ message: "Boutique non trouvée pour cet utilisateur" });
         }
 
-        // 3. Récupérer les produits en utilisant l'ID de la BOUTIQUE
+        // 2. On utilise l'ID de la boutique trouvée pour filtrer les produits
         const products = await Product.find({ shopId: shop._id });
 
         res.status(200).json(products);
