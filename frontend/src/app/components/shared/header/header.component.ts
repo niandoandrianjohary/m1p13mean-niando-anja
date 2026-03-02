@@ -59,7 +59,7 @@ import { Router } from '@angular/router';
             </button> -->
 
             <div class="cart-container" *ngIf="isBuyer()">
-              <button class="action-btn cart-btn" routerLink="/buyer/cart">
+              <button class="action-btn cart-btn" routerLink="/buy">
                 <i class="fas fa-shopping-bag"></i>
                 <span class="cart-count" *ngIf="cartService.itemCount() > 0">
                   {{ cartService.itemCount() }}
