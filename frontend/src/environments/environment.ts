@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api' // L'URL de ton Node.js
+  apiUrl: 'https://m1p13mean-niando-anja.onrender.com/api' // L'URL de ton Node.js
 };
