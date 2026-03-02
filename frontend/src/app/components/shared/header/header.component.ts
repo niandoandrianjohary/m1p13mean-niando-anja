@@ -79,12 +79,6 @@ import { Router } from '@angular/router';
                     <a [routerLink]="getDashboardLink()" class="dropdown-item">
                       <i class="fas fa-tachometer-alt"></i> Tableau de bord
                     </a>
-                    <a href="#" class="dropdown-item">
-                      <i class="fas fa-heart"></i> Favoris
-                    </a>
-                    <a href="#" class="dropdown-item">
-                      <i class="fas fa-history"></i> Historique
-                    </a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item logout" (click)="logout()">
                       <i class="fas fa-sign-out-alt"></i> Déconnexion
