@@ -97,7 +97,7 @@ import { Component } from '@angular/core';
           </div>
           <div class="credits-line">
             Projet  réalisé par
-            <span class="student-name">Niando .......</span> &
+            <span class="student-name">Andrianjohary Niando Andraina</span> &
             <span class="student-name">Rakotonanahary Anja Liantsoa Stephanie</span>
           </div>
         </div>
