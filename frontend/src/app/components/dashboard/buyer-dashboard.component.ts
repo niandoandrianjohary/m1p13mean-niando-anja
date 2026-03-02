@@ -337,7 +337,7 @@ import { OrderService } from '../../services/order.service';
                             (click)="paymentMethod = 'mvola'"
                           >
                             <img
-                              src="https://via.placeholder.com/20/0066b3/ffffff?text=M"
+                              src="https://mvola.mg/wp-content/uploads/2024/04/MVola_brand_new_vert-04-1-300x141.png"
                               class="me-2"
                               style="width: 20px;"
                             />
@@ -349,7 +349,7 @@ import { OrderService } from '../../services/order.service';
                             (click)="paymentMethod = 'airtel'"
                           >
                             <img
-                              src="https://via.placeholder.com/20/ed1c24/ffffff?text=A"
+                              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSoqjFvC0wk-5AgAetfr9RvoRJrLlJDZfALQ&s"
                               class="me-2"
                               style="width: 20px;"
                             />
@@ -361,7 +361,7 @@ import { OrderService } from '../../services/order.service';
                             (click)="paymentMethod = 'orange'"
                           >
                             <img
-                              src="https://via.placeholder.com/20/ff7900/ffffff?text=O"
+                              src="https://play-lh.googleusercontent.com/WqVwTX0AYfcYb8QyhbsoFomEpaOLfwBH5Od7tBfqkwscBdc3fYKfMwSCBqmNmw5o3w"
                               class="me-2"
                               style="width: 20px;"
                             />
