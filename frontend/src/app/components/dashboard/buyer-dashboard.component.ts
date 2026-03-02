@@ -484,17 +484,19 @@ export class BuyerDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
+  this.loadCategories();
+  
+  // 1. On récupère d'abord le paramètre de l'URL
+  this.route.queryParams.subscribe(params => {
+    if (params['search']) {
+      this.searchQuery = params['search'];
+      this.selectedCategory = '';
+    }
+    // 2. On lance le chargement des produits 
+    // (qu'il y ait une recherche ou non)
     this.loadProducts();
-    this.loadCategories();
-
-    this.route.queryParams.subscribe(params => {
-      if (params['search']) {
-        this.searchQuery = params['search'];
-        this.selectedCategory = ''; // Réinitialise la catégorie pour une recherche globale
-        this.search(); // Déclenche la logique de filtrage
-      }
-    });
-  }
+  });
+}
 
   loadCategories(): void {
     this.productService.getAllCategories().subscribe({
