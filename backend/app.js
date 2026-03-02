@@ -15,7 +15,7 @@ connectDB();
 
 // Configuration des options CORS
 const corsOptions = {
-  origin: 'https://69a5e09bb5620ab43e7823d3--incomparable-semifreddo-6a8e81.netlify.app', // L'URL de ton frontend Angular
+  origin: 'https://incomparable-semifreddo-6a8e81.netlify.app', // L'URL de ton frontend Angular
   methods: 'GET,POST,PUT,DELETE,PATCH', // Autorise toutes les méthodes CRUD
   allowedHeaders: 'Content-Type,Authorization', // Autorise le header pour le Token JWT
   optionsSuccessStatus: 200
