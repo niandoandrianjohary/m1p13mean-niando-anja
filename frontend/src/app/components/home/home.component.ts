@@ -1266,7 +1266,7 @@ export class HomeComponent implements OnInit {
     }
 
     const cartItem: CartItem = {
-      productId: product.id,
+      productId: product._id,
       name: product.name,
       price: product.price,
       image: product.image,

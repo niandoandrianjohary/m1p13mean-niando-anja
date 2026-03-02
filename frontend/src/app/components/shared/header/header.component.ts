@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { CartService } from '../../../services/cart.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -455,7 +456,8 @@ import { CartService } from '../../../services/cart.service';
 export class HeaderComponent {
   constructor(
     public authService: AuthService,
-    public cartService: CartService
+    public cartService: CartService,
+    private router: Router
   ) {}
 
   isLoggedIn(): boolean {
@@ -483,5 +485,6 @@ export class HeaderComponent {
 
   logout() {
     this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

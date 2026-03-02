@@ -92,8 +92,12 @@ export class AuthService {
     return this.http.get<User[]>(`${this.apiUrl}/users`);
   }
 
-  toggleStatus(id: string): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/users/${id}/toggle-status`, {});
+  // toggleStatus(id: string): Observable<User> {
+  //   return this.http.patch<User>(`${this.apiUrl}/users/${id}/toggle-status`, {});
+  // }
+
+  deleteUser(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/users/${id}`);
   }
 
   createUser(userData: any): Observable<User> {

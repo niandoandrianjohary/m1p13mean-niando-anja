@@ -103,13 +103,13 @@ import { ShopService } from '../../services/shop.service';
               </div>
             </div>
 
-            <div class="stat-card">
+            <!-- <div class="stat-card">
               <i class="fas fa-chart-line"></i>
               <div class="stat-info">
                 <h3>{{ formatNumber(totalRevenue) }}</h3>
                 <p>Chiffre d'affaires</p>
               </div>
-            </div>
+            </div> -->
           </div>
 
           <!-- Demandes Urgentes -->
@@ -179,6 +179,7 @@ import { ShopService } from '../../services/shop.service';
               </div>
 
               <div class="card-actions">
+                <label for="assignedLocation">Emplacement assigné :</label>
                 <select
                   [(ngModel)]="shop.assignedLocation"
                   class="location-select"
@@ -219,9 +220,9 @@ import { ShopService } from '../../services/shop.service';
                 [(ngModel)]="searchQuery"
                 class="search-input"
               />
-              <button class="btn-primary" (click)="addShop()">
+              <!-- <button class="btn-primary" (click)="addShop()">
                 <i class="fas fa-plus"></i> Ajouter
-              </button>
+              </button> -->
             </div>
           </div>
 
@@ -332,7 +333,18 @@ import { ShopService } from '../../services/shop.service';
 
               <div class="user-info">
                 <h4>{{ user.name }}</h4>
-                <p class="email">{{ user.email }}</p>
+                <p
+                  class="email"
+                  [title]="
+                    user.email.length > 30 ? user.email + ' ...' : user.email
+                  "
+                >
+                  {{
+                    user.email.length > 30
+                      ? (user.email | slice: 0 : 30) + ' ...'
+                      : user.email
+                  }}
+                </p>
                 <p class="role">{{ getRoleLabel(user.role) }}</p>
                 <p class="date">Inscrit le {{ formatDate(user.createdAt) }}</p>
               </div>
@@ -345,6 +357,11 @@ import { ShopService } from '../../services/shop.service';
               </div>
 
               <div class="user-actions">
+                <button class="btn-icon btn-danger" (click)="removeUser(user)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              <!-- <div class="user-actions">
                 <button class="btn-icon" (click)="resetPassword(user)">
                   <i class="fas fa-key"></i>
                 </button>
@@ -361,7 +378,7 @@ import { ShopService } from '../../services/shop.service';
                     "
                   ></i>
                 </button>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -691,7 +708,12 @@ import { ShopService } from '../../services/shop.service';
         border: 2px solid #ddd;
         border-radius: 6px;
         font-size: 0.9rem;
-        min-width: 250px;
+        min-width: 200px;
+      }
+      @media screen and (min-width: 900px) {
+        .search-input {
+          min-width: 400px;
+        }
       }
 
       .search-input:focus {
@@ -1211,7 +1233,7 @@ import { ShopService } from '../../services/shop.service';
   ],
 })
 export class AdminDashboardComponent implements OnInit {
-  currentSection = 'dashboard';
+  currentSection = 'activeShops';
   menuCollapsed = false;
   showCreateForm = false;
 
@@ -1329,6 +1351,8 @@ export class AdminDashboardComponent implements OnInit {
         // On retire la boutique de la liste "en attente" localement
         this.pendingShops = this.pendingShops.filter((s) => s._id !== shop._id);
         alert(`La boutique "${shop.name}" a été validée avec succès !`);
+        // Refresh page
+        window.location.reload();
       },
       error: (err) => {
         console.error(err);
@@ -1364,31 +1388,61 @@ export class AdminDashboardComponent implements OnInit {
     );
   }
 
+  // viewShop(shop: any) {
+  //   alert(
+  //     `Boutique: ${shop.name}\nGérant: ${shop.manager}\nEmail: ${shop.email}\nCA: ${this.formatNumber(shop.revenue)} MGA/mois`,
+  //   );
+  // }
+
   viewShop(shop: any) {
     alert(
-      `Boutique: ${shop.name}\nGérant: ${shop.manager}\nEmail: ${shop.email}\nCA: ${this.formatNumber(shop.revenue)} MGA/mois`,
+      `Boutique: ${shop.name}\nGérant: ${shop.ownerId.name}\nEmail: ${shop.ownerId.email}\nTéléphone: ${shop.ownerId.phone}\nEmplacement: ${shop.location}\nDescription: ${shop.description}\nStatut: ${shop.status}\nDate de création: ${this.formatDate(new Date(shop.createdAt))}\n${shop.assignedLocation ? `Emplacement assigné: ${shop.assignedLocation}` : ''}`,
     );
   }
 
   editShop(shop: any) {
     const newLocation = prompt('Nouvel emplacement:', shop.location);
     if (newLocation) {
-      shop.location = newLocation;
-      alert('Emplacement modifié');
+      this.shopService
+        .updateShop(shop._id, { location: newLocation })
+        .subscribe({
+          next: () => {
+            alert('Emplacement modifié');
+            window.location.reload(); // Refresh page
+          },
+          error: (err) =>
+            alert(`Erreur lors de la mise à jour: ${err.message}`),
+        });
     }
   }
 
   toggleShopStatus(shop: any) {
-    shop.status = shop.status === 'active' ? 'suspended' : 'active';
-    this.activeShopsCount = this.activeShops.filter(
-      (s) => s.status === 'active',
-    ).length;
-    alert(`Statut modifié: ${shop.status === 'active' ? 'ACTIF' : 'SUSPENDU'}`);
-  }
+  this.shopService.toggleShopStatus(shop._id).subscribe({
+    next: (response) => {
+      // Mise à jour directe de l'objet shop présent dans la grille
+      // On utilise le nouveau statut renvoyé par le backend
+      shop.status = response.shop.status;
 
-  addShop() {
-    alert("Fonctionnalité d'ajout de boutique - À implémenter");
-  }
+      // Optionnel : Mettre à jour le compteur global si nécessaire
+      this.updateActiveCount();
+      
+      console.log('Nouveau statut du shop :', shop.status);
+    },
+    error: (err) => {
+      alert(`Erreur lors de la mise à jour: ${err.message}`);
+    }
+  });
+}
+
+// Pour que ton compteur activeShopsCount reste juste
+updateActiveCount() {
+  // On recalcule à partir de toutes les sources de données que tu as
+  this.activeShopsCount = this.activeShops.filter(s => s.status === 'active').length;
+}
+
+  // addShop() {
+  //   alert("Fonctionnalité d'ajout de boutique - À implémenter");
+  // }
 
   createUser() {
     // 1. Validation simple
@@ -1423,16 +1477,33 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  resetPassword(user: any) {
-    alert(`Réinitialisation du mot de passe pour ${user.name}`);
+  removeUser(user: any) {
+    if (
+      confirm(
+        `Voulez-vous supprimer définitivement l'utilisateur "${user.name}" ?\nCela est une action irréversible et il ne sera pas possible de le récupérer après suppression.`,
+      ) &&
+      confirm(`Confirmez que vous voulez supprimer l'utilisateur "${user.name}"`)
+    ) {
+      this.authService.deleteUser(user._id).subscribe({
+        next: () => {
+          this.allUsers = this.allUsers.filter(u => u._id !== user._id);
+          alert(`L'utilisateur "${user.name}" a été supprimé`);
+        },
+        error: (err) => alert(`Erreur lors de la suppression : ${err.message}`),
+      });
+    }
   }
 
-  toggleUserStatus(user: any) {
-    this.authService.toggleStatus(user._id).subscribe(() => {
-      // On inverse l'état localement pour l'UI
-      user.active = !user.active;
-    });
-  }
+  // resetPassword(user: any) {
+  //   alert(`Réinitialisation du mot de passe pour ${user.name}`);
+  // }
+
+  // toggleUserStatus(user: any) {
+  //   this.authService.toggleStatus(user._id).subscribe(() => {
+  //     // On inverse l'état localement pour l'UI
+  //     user.active = !user.active;
+  //   });
+  // }
 
   logout() {
     if (confirm('Déconnexion ?')) {

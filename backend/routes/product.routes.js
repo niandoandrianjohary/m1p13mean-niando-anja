@@ -30,4 +30,10 @@ router.get('/:id', productCtrl.getProductById);
 // Créer un produit : Seul un profil 'shop' peut le faire
 router.post('/', auth, role(['shop']), productCtrl.createProduct);
 
+// Supprimer un produit par son ID
+router.delete('/:id', auth, role(['shop', 'admin']), productCtrl.deleteProductById);
+
+// Mettre à jour un produit par son ID
+router.patch('/:id', auth, role(['shop', 'admin']), productCtrl.updateProduct);
+
 module.exports = router;

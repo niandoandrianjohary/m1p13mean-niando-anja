@@ -218,3 +218,22 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur", error: error.message });
     }
 };
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // SÉCURITÉ : Seul l'admin peut supprimer un utilisateur
+        if (req.auth.role !== 'admin') {
+            return res.status(403).json({ message: "Accès non autorisé" });
+        }
+
+        // Suppression de l'utilisateur
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({ message: "Utilisateur supprimé avec succès" });
+
+    } catch (error) {
+        res.status(500).json({ message: "Erreur suppression", error: error.message });
+    }
+};

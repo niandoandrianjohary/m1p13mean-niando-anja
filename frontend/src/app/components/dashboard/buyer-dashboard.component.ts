@@ -535,7 +535,7 @@ export class BuyerDashboardComponent implements OnInit {
   // --- Gestion du Panier ---
   addToCart(product: Product) {
     const cartItem: CartItem = {
-      productId: product.id,
+      productId: product._id,
       name: product.name,
       price: product.price,
       image: product.image,
@@ -543,6 +543,7 @@ export class BuyerDashboardComponent implements OnInit {
       shopId: product.shopId,
       shopName: product.shopName,
     };
+    console.log('Ajout au panier', cartItem);
     this.cartService.addToCart(cartItem);
   }
 

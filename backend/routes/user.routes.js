@@ -29,5 +29,8 @@ router.post('/create-user', auth, role(['admin']), userCtrl.createUser);
 // Seul l'admin peut voir la liste de tous les utilisateurs
 router.get('/', auth, role(['admin']), userCtrl.getAllUsers);
 
+// Supprimer un utilisateur (seul un profil 'admin' peut le faire)
+router.delete('/:id', auth, role(['admin']), userCtrl.deleteUser);
+
 module.exports = router;
 

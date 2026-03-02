@@ -156,10 +156,12 @@ import autoTable from 'jspdf-autotable';
                     <table class="table table-hover">
                       <thead>
                         <tr>
+                          <th>Image</th>
                           <th>Produit</th>
+                          <th>Catégorie</th>
+                          <th>Prix (Ar)</th>
                           <th>Stock actuel</th>
-                          <th>Seuil bas</th>
-                          <th>Quantité à commander</th>
+
                           <th>Actions</th>
                         </tr>
                       </thead>
@@ -231,7 +233,7 @@ import autoTable from 'jspdf-autotable';
                               </button>
                               <button
                                 class="btn btn-sm btn-outline-danger"
-                                (click)="deleteProduct(product.id)"
+                                (click)="deleteProduct(product._id)"
                               >
                                 <i class="fas fa-trash"></i>
                               </button>
@@ -413,6 +415,16 @@ import autoTable from 'jspdf-autotable';
                   ></textarea>
                 </div>
 
+                <div class="mb-3">
+                  <label class="form-label">URL de l'image</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="newProduct.image"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+
                 <div class="d-flex justify-content-end gap-2">
                   <button class="btn btn-success" (click)="addProduct()">
                     <i class="fas fa-save me-2"></i>Enregistrer
@@ -472,13 +484,20 @@ import autoTable from 'jspdf-autotable';
                         class="order-item"
                       >
                         <td>
-                          <div
-                            class="bg-light d-flex align-items-center justify-content-center"
-                            style="width: 60px; height: 60px;"
-                          >
-                            <i class="fas fa-image text-muted"></i>
-                          </div>
-                        </td>
+                            <img
+                              *ngIf="product.image"
+                              [src]="product.image"
+                              class="rounded"
+                              style="width: 50px; height: 50px; object-fit: cover;"
+                            />
+                            <div
+                              *ngIf="!product.image"
+                              class="bg-light d-flex align-items-center justify-content-center"
+                              style="width: 50px; height: 50px;"
+                            >
+                              <i class="fas fa-image text-muted"></i>
+                            </div>
+                          </td>
                         <td>
                           <strong>{{ product.name }}</strong
                           ><br />
@@ -521,7 +540,7 @@ import autoTable from 'jspdf-autotable';
                             </button>
                             <button
                               class="btn btn-sm btn-outline-danger"
-                              (click)="deleteProduct(product.id)"
+                              (click)="deleteProduct(product._id)"
                             >
                               <i class="fas fa-trash"></i>
                             </button>
@@ -632,7 +651,11 @@ import autoTable from 'jspdf-autotable';
                       class="d-flex justify-content-between align-items-start mb-3"
                     >
                       <div>
-                        <h5>Commande #{{ order?._id ? order._id.slice(-6) : 'Chargement...' }}</h5>
+                        <h5>
+                          Commande #{{
+                            order?._id ? order._id.slice(-6) : 'Chargement...'
+                          }}
+                        </h5>
                         <p class="text-muted mb-1">
                           <i class="fas fa-user me-1"></i>{{ order.buyerName }}
                         </p>
@@ -883,6 +906,7 @@ export class ShopDashboardComponent implements OnInit {
   newProduct = {
     name: '',
     description: '',
+    image: '',
     price: 0,
     stock: 0,
     category: '',
@@ -934,11 +958,11 @@ export class ShopDashboardComponent implements OnInit {
 
   // Méthodes utilitaires
   formatNumber(num: number | undefined | null): string {
-  if (num === undefined || num === null) {
-    return '0'; // Ou '...' selon votre préférence
+    if (num === undefined || num === null) {
+      return '0'; // Ou '...' selon votre préférence
+    }
+    return num.toLocaleString('fr-MG');
   }
-  return num.toLocaleString('fr-MG');
-}
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -1001,6 +1025,7 @@ export class ShopDashboardComponent implements OnInit {
       this.newProduct = {
         name: '',
         description: '',
+        image: '',
         price: 0,
         stock: 0,
         category: '',
@@ -1012,6 +1037,7 @@ export class ShopDashboardComponent implements OnInit {
     this.newProduct = {
       name: '',
       description: '',
+      image: '',
       price: 0,
       stock: 0,
       category: '',
@@ -1021,57 +1047,89 @@ export class ShopDashboardComponent implements OnInit {
 
   editProduct(product: Product) {
     const newName = prompt('Nouveau nom:', product.name);
-    if (newName) {
-      const newPrice = prompt('Nouveau prix:', product.price.toString());
-      if (newPrice) {
-        this.productService.updateProduct(product.id, {
-          name: newName,
-          price: Number(newPrice),
-        });
-        this.loadShopProducts();
-        alert('Produit mis à jour!');
-      }
-    }
+    if (!newName) return;
+
+    const newPriceStr = prompt('Nouveau prix:', product.price.toString());
+    if (!newPriceStr) return;
+
+    const newPrice = Number(newPriceStr);
+
+    // CRITIQUE : Il faut ajouter .subscribe() !
+    this.productService
+      .updateProduct(product._id, {
+        name: newName,
+        price: newPrice,
+      })
+      .subscribe({
+        next: (updatedProduct) => {
+          console.log('Produit mis à jour avec succès', updatedProduct);
+          alert('Produit mis à jour !');
+          this.loadShopProducts(); // On rafraîchit la liste SEULEMENT après le succès
+        },
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour', err);
+          alert('Erreur : ' + err.message);
+        },
+      });
   }
 
   deleteProduct(id: string) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      this.productService.deleteProduct(id);
-      this.loadShopProducts();
-      alert('Produit supprimé!');
-    }
+  if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+    // CRITIQUE : Il faut ajouter .subscribe() pour déclencher la requête
+    this.productService.deleteProduct(id).subscribe({
+      next: () => {
+        // On ne rafraîchit la liste que si le serveur confirme la suppression
+        this.loadShopProducts();
+        alert('Produit supprimé !');
+      },
+      error: (err) => {
+        console.error('Erreur lors de la suppression', err);
+        alert('Impossible de supprimer le produit : ' + (err.error?.message || err.message));
+      }
+    });
   }
+}
 
   quickRestock(product: Product) {
-    const quantity = prompt(
-      `Quantité à ajouter au stock de "${product.name}" :`,
-      '10',
-    );
-    if (quantity && !isNaN(Number(quantity))) {
-      const newStock = product.stock + Number(quantity);
-      this.productService.updateProduct(product.id, { stock: newStock });
-      this.loadShopProducts();
-      alert(`Stock mis à jour: ${newStock} unités`);
-    }
+  const quantity = prompt(`Quantité à ajouter au stock de "${product.name}" :`, '10');
+  
+  if (quantity && !isNaN(Number(quantity))) {
+    const newStock = product.stock + Number(quantity);
+
+    // AJOUT DU SUBSCRIBE ICI
+    this.productService.updateProduct(product._id, { stock: newStock }).subscribe({
+      next: (updatedProduct) => {
+        this.loadShopProducts(); // On rafraîchit la liste après confirmation
+        alert(`Stock mis à jour : ${newStock} unités`);
+      },
+      error: (err) => alert('Erreur lors de la mise à jour du stock')
+    });
   }
+}
 
   restockProduct(product: Product, index: number) {
-    const quantity = this.restockQuantities[index];
+  const quantity = this.restockQuantities[index];
 
-    if (!quantity || quantity <= 0) {
-      alert('Veuillez entrer une quantité valide');
-      return;
-    }
-
-    const newStock = product.stock + Number(quantity);
-    this.productService.updateProduct(product.id, { stock: newStock });
-    this.loadShopProducts();
-
-    // Réinitialiser la quantité
-    this.restockQuantities[index] = 10;
-
-    alert(`Stock de "${product.name}" mis à jour: ${newStock} unités`);
+  if (!quantity || quantity <= 0) {
+    alert('Veuillez entrer une quantité valide');
+    return;
   }
+
+  const newStock = product.stock + Number(quantity);
+
+  // AJOUT DU SUBSCRIBE ICI
+  this.productService.updateProduct(product._id, { stock: newStock }).subscribe({
+    next: () => {
+      this.loadShopProducts();
+      this.restockQuantities[index] = 10; // Réinitialisation après succès
+      alert(`Stock de "${product.name}" mis à jour : ${newStock} unités`);
+    },
+    error: (err) => {
+      console.error(err);
+      alert('Une erreur est survenue lors du restockage');
+    }
+  });
+}
 
   // Pagination produits
   totalProductPages(): number {
@@ -1121,8 +1179,6 @@ export class ShopDashboardComponent implements OnInit {
     });
   }
 
-  
-
   getPaginatedOrders() {
     const orders = this.filteredOrders() || []; // Force un tableau vide si undefined
     const startIndex = (this.ordersCurrentPage - 1) * this.ordersPageSize;
@@ -1149,7 +1205,7 @@ export class ShopDashboardComponent implements OnInit {
   viewOrderDetails(order: any) {
     alert(
       `Détails de la commande #${order._id}\n\n` +
-        `Client: ${order.customer}\n` +
+        `Client: ${order.buyerName}\n` +
         `Total: ${this.formatNumber(order.totalPrice)} Ar\n` +
         `Statut: ${this.getStatusText(order.status)}\n` +
         `Date: ${this.formatDate(order.createdAt)}\n\n` +
@@ -1252,6 +1308,7 @@ export class ShopDashboardComponent implements OnInit {
       produits: this.shopProducts.map((p) => ({
         nom: p.name,
         description: p.description,
+        image: p.image,
         prix: p.price,
         stock: p.stock,
         catégorie: p.category.join(', '),

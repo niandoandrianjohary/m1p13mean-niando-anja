@@ -205,3 +205,19 @@ exports.getConnectedShop = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur", error: error.message });
     }
 };
+
+// Fonction pour changer le statut d'une boutique (active ou inactive)
+exports.toggleShopStatus = async (req, res) => {
+    try {
+        const shop = await Shop.findById(req.params.id);
+        if (!shop) return res.status(404).json({ message: "Boutique introuvable" });
+
+        // On inverse le statut actuel
+        shop.status = shop.status === 'active' ? 'suspended' : 'active';
+        await shop.save();
+
+        res.json({ message: "Statut mis à jour !", shop });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur", error: error.message });
+    }
+};

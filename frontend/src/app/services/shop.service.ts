@@ -41,4 +41,12 @@ export class ShopService {
   getConnectedShop(): Observable<Shop> {
     return this.http.get<Shop>(`${this.apiUrl}/connected-shop`);
   }
+
+  updateShop(id: string, shopData: Partial<Shop>): Observable<Shop> {
+    return this.http.put<Shop>(`${this.apiUrl}/${id}`, shopData);
+  }
+
+  toggleShopStatus(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/toggle-status`, {});
+  }
 }

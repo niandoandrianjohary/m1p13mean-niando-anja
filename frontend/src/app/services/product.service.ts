@@ -20,14 +20,17 @@ export class ProductService {
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<Product> {
+    console.log(`Updating product with id ${id}`);
     return this.http.patch<Product>(`${this.apiUrl}/${id}`, product);
   }
 
   deleteProduct(id: string): Observable<any> {
+    console.log(`Deleting product with id ${id}`);
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
   getAllProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(this.apiUrl);
   }
+  
 }

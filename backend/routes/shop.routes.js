@@ -42,5 +42,8 @@ router.patch('/:id/reject', auth, role(['admin']), shopCtrl.rejectShop);
 // 10. APPROUVER une boutique (Sécurisé : Admin uniquement)
 router.patch('/:id/approve', auth, role(['admin']), shopCtrl.approveShop);
 
+// 11. TOGGLE le statut d'une boutique (Sécurisé : Admin ou Propriétaire via la logique du controller)
+router.patch('/:id/toggle-status', auth, role(['admin', 'shop']), shopCtrl.toggleShopStatus);
+
 module.exports = router;
 
