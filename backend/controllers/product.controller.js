@@ -1,13 +1,40 @@
 const Product = require('../models/product.model');
 const Shop = require('../models/shop.model'); // Vérifiez le chemin vers votre modèle Shop
 
+// product.controller.js
+// exports.createProduct = async (req, res) => {
+//     try {
+//         // On prend tout ce qui vient du body (qui contient déjà le bon shopId et shopName)
+//         const product = new Product(req.body); 
+//         await product.save();
+//         res.status(201).json(product);
+//     } catch (e) { 
+//         res.status(400).json({ error: e.message }); 
+//     }
+// };
+
+// product.controller.js
 exports.createProduct = async (req, res) => {
     try {
-        // Le shopId vient de req.auth (injecté par ton middleware auth)
-        const product = new Product({ ...req.body, shopId: req.auth.userId });
+        // 1. Trouver le shop de l'utilisateur connecté
+        const shop = await Shop.findOne({ ownerId: req.auth.userId });
+        
+        if (!shop) {
+            return res.status(404).json({ message: "Vous n'avez pas de boutique pour créer un produit" });
+        }
+
+        // 2. Créer le produit en injectant le VRAI shopId et le shopName
+        const product = new Product({ 
+            ...req.body, 
+            shopId: shop._id, 
+            shopName: shop.name 
+        });
+
         await product.save();
         res.status(201).json(product);
-    } catch (e) { res.status(400).json({ error: e.message }); }
+    } catch (e) { 
+        res.status(400).json({ error: e.message }); 
+    }
 };
 
 exports.getProductsByShop = async (req, res) => {
